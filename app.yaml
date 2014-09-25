@@ -1,8 +1,13 @@
-application: helloworld
-version: 1
+application: hashtock
+version: 2
 runtime: go
 api_version: go1
 
 handlers:
 - url: /.*
   script: _go_app
+  login: required
+
+- url: /admin/.*
+  script: _go_app
+  login: admin

@@ -12,9 +12,10 @@ import (
 func init() {
     r := mux.NewRouter()
     r.HandleFunc("/login", Login)
-    r.HandleFunc("/transaction", TSell).Methods("POST")
-    r.HandleFunc("/bank/sell/{hash}/{amount:\\d+}", BankSellHandler)
-    r.HandleFunc("/bank/buy/{hash}/{amount}", BankBuyHandler)
+    r.HandleFunc("/logout", Logout)
+    r.HandleFunc("/bank/info/{hash}/", HashTagInfoView)
+    r.HandleFunc("/bank/info/", HashTagInfoAllView)
+    r.HandleFunc("/admin/tag/add/{hash}", AddHashTagView)
 
     http.Handle("/", r)
 }
@@ -36,13 +37,14 @@ func Login(rw http.ResponseWriter, req *http.Request) {
     fmt.Fprintf(rw, "Hello, %v!", u)
 }
 
-func BankSellHandler(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
+func Logout(rw http.ResponseWriter, req *http.Request) {
+    ctx := appengine.NewContext(req)
 
-    fmt.Fprintf(w, "Sell %v\n", vars["hash"])
-    fmt.Fprintf(w, "Req %#v", r)
-}
-
-func BankBuyHandler(w http.ResponseWriter, r *http.Request) {
-    fmt.Fprint(w, "Buy")
+    url, err := user.LogoutURL(ctx, "login")
+    if err != nil {
+        http.Error(rw, err.Error(), http.StatusInternalServerError)
+        return
+    }
+    rw.Header().Set("Location", url)
+    rw.WriteHeader(http.StatusFound)
 }
