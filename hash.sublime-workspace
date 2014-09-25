@@ -1,0 +1,1418 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Tr",
+				"TransactionQuery"
+			],
+			[
+				"fun",
+				"func http handler	func(rw, req) ʂ"
+			],
+			[
+				"func",
+				"func (*Bank)	func (...) {...} ʂ"
+			],
+			[
+				"status",
+				"StatusBadRequest	 Ɩ"
+			],
+			[
+				"Wa",
+				"WaitGroup"
+			],
+			[
+				"prit",
+				"Println	n int, err error ƒ"
+			],
+			[
+				"strig",
+				"strings	 package ρ"
+			],
+			[
+				"F",
+				"Fprintln	n int, err error ƒ"
+			],
+			[
+				"feat",
+				"features"
+			],
+			[
+				"pos",
+				"position"
+			],
+			[
+				"game",
+				"game_json"
+			],
+			[
+				"print",
+				"Printf	n int, err error ƒ"
+			],
+			[
+				"fea",
+				"feature"
+			],
+			[
+				"boar",
+				"board_size"
+			],
+			[
+				"bo",
+				"board_size"
+			],
+			[
+				"acti",
+				"action_pk"
+			],
+			[
+				"ac",
+				"action_pk"
+			],
+			[
+				"sr",
+				"string"
+			],
+			[
+				"Players",
+				"PlayersBots"
+			],
+			[
+				"pla",
+				"player"
+			],
+			[
+				"p",
+				"Println	n int, err error ƒ"
+			],
+			[
+				"Player",
+				"PlayersBots"
+			],
+			[
+				"s",
+				"strconv"
+			],
+			[
+				"bot",
+				"Bot	struct ʈ"
+			],
+			[
+				"Curr",
+				"CurrentData"
+			],
+			[
+				"curre",
+				"current_data"
+			],
+			[
+				"str",
+				"string"
+			],
+			[
+				"was",
+				"was_killed_by"
+			],
+			[
+				"file",
+				"filepath	 package ρ"
+			],
+			[
+				"pr",
+				"Println	n int, err error ƒ"
+			],
+			[
+				"cont",
+				"content"
+			],
+			[
+				"fi",
+				"filename"
+			],
+			[
+				"player",
+				"player_pk"
+			],
+			[
+				"f",
+				"for	For Loop"
+			],
+			[
+				"Ind",
+				"IndexError	error"
+			],
+			[
+				"gam",
+				"game_features"
+			],
+			[
+				"po",
+				"position"
+			],
+			[
+				"ga",
+				"game_data"
+			],
+			[
+				"view",
+				"view_range"
+			],
+			[
+				"if",
+				"ifmain	if __name__ == '__main__'"
+			],
+			[
+				"mk",
+				"makedirs	(function)"
+			],
+			[
+				"curr",
+				"current_data"
+			],
+			[
+				"iter",
+				"itertools"
+			],
+			[
+				"su",
+				"super	(class)"
+			],
+			[
+				"move",
+				"move_logger"
+			],
+			[
+				"ite",
+				"itertools"
+			],
+			[
+				"play",
+				"player_id"
+			],
+			[
+				"COLO",
+				"COLOR_BLACK	(class)"
+			],
+			[
+				"COLOR_",
+				"COLOR_CYAN	(class)"
+			],
+			[
+				"fram",
+				"frame_no	(param)"
+			],
+			[
+				"req",
+				"requests	(imported, module)"
+			],
+			[
+				"Obj",
+				"object	(builtin, class)"
+			],
+			[
+				"user",
+				"user_tracks"
+			],
+			[
+				"use",
+				"user_tracks"
+			],
+			[
+				"ass",
+				"assertTrue(expr, msg)	(attribute, function)"
+			],
+			[
+				"tab",
+				"table_empty(cls, cursor)	(attribute, function)"
+			],
+			[
+				"in_db",
+				"is_in_db(cursor)	(attribute, function)"
+			],
+			[
+				"asserr",
+				"assertTrue"
+			],
+			[
+				"art",
+				"artist2"
+			],
+			[
+				"time",
+				"timestamp_from"
+			],
+			[
+				"asser",
+				"assertEquals	(attribute, instance)"
+			],
+			[
+				"latest",
+				"latest(cls, cursor)	(attribute, function)"
+			],
+			[
+				"time_rage",
+				"time_ranges"
+			],
+			[
+				"tim",
+				"timestamp_to"
+			],
+			[
+				"tr",
+				"tracks_count	(local, instance)"
+			],
+			[
+				"aver",
+				"average	(local, instance)"
+			],
+			[
+				"day",
+				"day_of_week"
+			],
+			[
+				"assert",
+				"assertEquals	(attribute, instance)"
+			],
+			[
+				"mos",
+				"most_active_day_of_week(cls, cursor)	(attribute, function)"
+			],
+			[
+				"fav",
+				"favourite_artist"
+			],
+			[
+				"tra",
+				"track	(local, instance)"
+			],
+			[
+				"trac",
+				"track_data"
+			],
+			[
+				"assertE",
+				"assertEquals"
+			],
+			[
+				"cur",
+				"cur"
+			],
+			[
+				"create",
+				"create_table"
+			],
+			[
+				"impo",
+				"import	(keyword, instance)"
+			],
+			[
+				"ret",
+				"return_value"
+			],
+			[
+				"fetch",
+				"fetch_tracks"
+			],
+			[
+				"timesamp",
+				"timestamp"
+			],
+			[
+				"ap",
+				"api_key"
+			],
+			[
+				"IN",
+				"INTEGER"
+			],
+			[
+				"row",
+				"rows_count"
+			],
+			[
+				"dele",
+				"delete_sql"
+			],
+			[
+				"cl",
+				"classmethod"
+			],
+			[
+				"msg",
+				"msg=	(parameter_keyword, instance)"
+			],
+			[
+				"timte",
+				"timestamp_from"
+			],
+			[
+				"timesa",
+				"timestamps	(local, instance)"
+			],
+			[
+				"late",
+				"latest_sql"
+			],
+			[
+				"retur",
+				"return"
+			],
+			[
+				"for",
+				"format"
+			],
+			[
+				"ti",
+				"timestamp_from"
+			],
+			[
+				"tie",
+				"timestamp"
+			],
+			[
+				"timesta",
+				"timestamps"
+			],
+			[
+				"db",
+				"db_location"
+			],
+			[
+				"class",
+				"classmethod"
+			],
+			[
+				"assertT",
+				"assertTimeRangesTableEquals"
+			],
+			[
+				"time_",
+				"time_ranges"
+			],
+			[
+				"is",
+				"is_in_db"
+			],
+			[
+				"obj",
+				"obj	(local, instance)"
+			],
+			[
+				"obje",
+				"object"
+			],
+			[
+				"tiem",
+				"timestamp_to"
+			],
+			[
+				"add",
+				"add_to_db"
+			],
+			[
+				"tabe",
+				"table_name	(local, instance)"
+			],
+			[
+				"clas",
+				"classmethod"
+			],
+			[
+				"Not",
+				"NotImplementedError	(builtin, class)"
+			],
+			[
+				"timestamp_",
+				"timestamp_to	(attribute, instance)"
+			],
+			[
+				"time_range",
+				"time_range_sql"
+			],
+			[
+				"cu",
+				"cur"
+			],
+			[
+				"cr",
+				"create_table(cursor)	(attribute, function)"
+			],
+			[
+				"fa",
+				"fake_json_data"
+			],
+			[
+				"fake",
+				"fake_tracks"
+			],
+			[
+				"inse",
+				"insert_sql"
+			],
+			[
+				"Tra",
+				"Track"
+			],
+			[
+				"timesatm",
+				"timestamp"
+			],
+			[
+				"retu",
+				"return"
+			],
+			[
+				"date",
+				"datetime"
+			],
+			[
+				"D",
+				"DB_STATE"
+			],
+			[
+				"return",
+				"return_value"
+			],
+			[
+				"utc",
+				"utc_now"
+			],
+			[
+				"A",
+				"ApiUsageLimitException"
+			],
+			[
+				"times",
+				"timestamp_from"
+			],
+			[
+				"rever",
+				"reverse=True"
+			],
+			[
+				"Val",
+				"ValueError"
+			],
+			[
+				"Value",
+				"ValueError	(builtin, class)"
+			],
+			[
+				"stat",
+				"staticmethod	staticmethod"
+			],
+			[
+				"delte",
+				"delete"
+			],
+			[
+				"titl",
+				"titles_to_check"
+			],
+			[
+				"cle",
+				"clear_datastore"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "main.go",
+			"settings":
+			{
+				"buffer_size": 607,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "bank.go",
+			"settings":
+			{
+				"buffer_size": 688,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "transactions.go",
+			"settings":
+			{
+				"buffer_size": 529,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "Packages/GoSublime/GoSublime.sublime-build",
+	"command_palette":
+	{
+		"height": 222.0,
+		"selected_items":
+		[
+			[
+				"jso",
+				"Indent JSON"
+			],
+			[
+				"gosublime:",
+				"GoSublime: Read Me"
+			],
+			[
+				"syntax: go",
+				"Set Syntax: GoSublime: Go"
+			],
+			[
+				"remove",
+				"Package Control: Remove Package"
+			],
+			[
+				"install",
+				"Package Control: Install Package"
+			],
+			[
+				"remo",
+				"Package Control: Remove Package"
+			],
+			[
+				"inde",
+				"Indent JSON"
+			],
+			[
+				"insta",
+				"Package Control: Install Package"
+			],
+			[
+				"isnta",
+				"Package Control: Install Package"
+			],
+			[
+				"json",
+				"Indent JSON"
+			],
+			[
+				"git push",
+				"Git: Push Current Branch"
+			],
+			[
+				"pyth",
+				"Set Syntax: Python"
+			],
+			[
+				"ython",
+				"Set Syntax: Python"
+			],
+			[
+				"toggle",
+				"SublimeLinter: Toggle Linter"
+			],
+			[
+				"html",
+				"Set Syntax: HTML (Django)"
+			],
+			[
+				"hml",
+				"Set Syntax: HTML"
+			],
+			[
+				"daj",
+				"Set Syntax: HTML (Django)"
+			],
+			[
+				"djano",
+				"Set Syntax: HTML (Django)"
+			],
+			[
+				"docker",
+				"Set Syntax: Dockerfile"
+			],
+			[
+				"Python",
+				"Set Syntax: Python"
+			],
+			[
+				"mult",
+				"Set Syntax: MultiMarkdown"
+			],
+			[
+				"markdow",
+				"Set Syntax: Markdown"
+			],
+			[
+				"ins",
+				"Package Control: Install Package"
+			],
+			[
+				"jijna",
+				"Set Syntax: HTML (Jinja Templates)"
+			],
+			[
+				"jij",
+				"Set Syntax: HTML (Jinja Templates)"
+			],
+			[
+				"markdowd",
+				"Preferences: MarkdownEditing Settings – User"
+			],
+			[
+				"plain",
+				"Set Syntax: Plain Text"
+			],
+			[
+				"plan",
+				"Set Syntax: Plain Text"
+			],
+			[
+				"text",
+				"Set Syntax: reStructuredText"
+			],
+			[
+				"jijn",
+				"Set Syntax: HTML (Jinja Templates)"
+			],
+			[
+				"multi",
+				"Set Syntax: MultiMarkdown"
+			],
+			[
+				"markdown",
+				"Set Syntax: Markdown"
+			],
+			[
+				"instal",
+				"Package Control: Install Package"
+			],
+			[
+				"enbl",
+				"Package Control: Enable Package"
+			],
+			[
+				"mark",
+				"Set Syntax: MultiMarkdown"
+			],
+			[
+				"makr",
+				"Set Syntax: Markdown Extended"
+			],
+			[
+				"markd",
+				"Set Syntax: Markdown"
+			],
+			[
+				"enable",
+				"Package Control: Enable Package"
+			],
+			[
+				"disa",
+				"Package Control: Disable Package"
+			],
+			[
+				"syntax plai",
+				"Set Syntax: Plain Text"
+			],
+			[
+				"package",
+				"Preferences: Browse Packages"
+			],
+			[
+				"ji",
+				"Set Syntax: HTML (Jinja Templates)"
+			],
+			[
+				"jin",
+				"Set Syntax: HTML (Jinja Templates)"
+			],
+			[
+				"list",
+				"Package Control: List Packages"
+			],
+			[
+				"pyt",
+				"Set Syntax: Python"
+			],
+			[
+				"qml",
+				"Set Syntax: QML"
+			],
+			[
+				"settings",
+				"Preferences: Settings - User"
+			],
+			[
+				"runserver",
+				"Django: Run Server"
+			],
+			[
+				"p",
+				"Package Control: List Packages"
+			],
+			[
+				"djanog",
+				"Set Syntax: HTML (Django)"
+			],
+			[
+				"hmtl",
+				"Set Syntax: HTML"
+			],
+			[
+				"remov",
+				"Package Control: Remove Package"
+			],
+			[
+				"packa",
+				"Package Control: Disable Package"
+			],
+			[
+				"sublime",
+				"Preferences: SublimeLint Settings – User"
+			],
+			[
+				"sublimelint",
+				"Preferences: SublimeLint Settings – Default"
+			],
+			[
+				"lint",
+				"SublimeLint: Report (Open Files)"
+			],
+			[
+				"brow",
+				"Preferences: Browse Packages"
+			]
+		],
+		"width": 467.0
+	},
+	"console":
+	{
+		"height": 434.0,
+		"history":
+		[
+			"import urllib.request,os; pf = 'Package Control.sublime-package'; ipp = sublime.installed_packages_path(); urllib.request.install_opener( urllib.request.build_opener( urllib.request.ProxyHandler()) ); open(os.path.join(ipp, pf), 'wb').write(urllib.request.urlopen( 'http://sublime.wbond.net/' + pf.replace(' ','%20')).read())"
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/home/fuxi/projekty/hash"
+	],
+	"file_history":
+	[
+		"/home/fuxi/.config/sublime-text-3/Packages/GoSublime/9o.md",
+		"/home/fuxi/.bashrc",
+		"/home/fuxi/.bash",
+		"/boot/grub/grub.cfg",
+		"/usr/share/applications/defaults.list",
+		"/home/fuxi/projekty/git/strategy_bots/data/davide-happiness-1409732208.37.json",
+		"/home/fuxi/projekty/Kraggle/shoppers/mr/learn.py",
+		"/home/fuxi/.config/sublime-text-3/Packages/GoSublime/GoSublime.sublime-settings",
+		"/home/fuxi/.config/sublime-text-3/Packages/User/GoSublime.sublime-settings",
+		"/home/fuxi/projekty/git/strategy_bots/bots.sublime-project",
+		"/home/fuxi/.config/sublime-text-3/Packages/GoSublime/USAGE.md",
+		"/home/fuxi/projekty/git/strategy_bots/test.json",
+		"/home/fuxi/projekty/git/strategy_bots/learn/game/game_data.go",
+		"/home/fuxi/projekty/git/strategy_bots/learn/game_data.go",
+		"/home/fuxi/.config/sublime-text-3/Packages/GoSublime/README.md",
+		"/home/fuxi/.config/sublime-text-3/Packages/GoSublime/CHANGELOG.md",
+		"/home/fuxi/.profile",
+		"/home/fuxi/projekty/git/strategy_bots/data/killer-davide-1409741946.38.json",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/data/davide-happiness-1409698778.02.json",
+		"/home/fuxi/projekty/git/strategy_bots/data/davide-happiness-1409732136.7.json",
+		"/home/fuxi/projekty/coursera/Algorithms 1/env/Dockerfile",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/example.json",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/consoleui/__main__.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/play.sh",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/consoleui/core.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/play.sh",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/game.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/components.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/scripts/karol_trainer.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/scripts/davide_trainer.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/main.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/api.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/bots/davide.py",
+		"/home/fuxi/skypecamera2",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy/strategypy/bots/davide_2.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/strategypy-consoleui/settings.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/strategypy-consoleui/core.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/strategypy-consoleui/__main__.py",
+		"/home/fuxi/projekty/git/strategy_bots/strategypy-consoleui/core.py",
+		"/home/fuxi/projekty/git/lastfm-user-tracks/README.md",
+		"/home/fuxi/projekty/git/lastfm-user-tracks/runtests.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/models.py",
+		"/home/fuxi/projekty/git/lastfm/tests/__init__.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/user_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/tests/helpers.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/tests/test_user_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/tests/test_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/tests/test_time_range.py",
+		"/home/fuxi/projekty/git/lastfm/models.py",
+		"/home/fuxi/projekty/git/lastfm/requirements.txt",
+		"/home/fuxi/projekty/git/lastfm/test_requirements.txt",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/tests/helpers.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/tests/__init__.py",
+		"/home/fuxi/projekty/git/lastfm/runtests.py",
+		"/home/fuxi/projekty/git/lastfm/user_tracks/__main__.py",
+		"/home/fuxi/projekty/git/lastfm/tests/test_time_range.py",
+		"/home/fuxi/projekty/git/lastfm/tests/test_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/tests/test_user_tracks.py",
+		"/home/fuxi/projekty/git/lastfm/tests/__main__.py",
+		"/home/fuxi/projekty/git/lastfm/tests.sh",
+		"/home/fuxi/projekty/git/lastfm/tests.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/blog/urls.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/blog/tests/test_list_views.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/urls.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/test.sh",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/settings.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/blog/tests/__init__.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/blog/tests/test_models.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/blog/tests/test_post_views.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/form.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/forms.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/readme.md",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/app.yaml",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/tests/__init__.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/shell.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/main.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/500.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/404.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/tests.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/_tests/test_models.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/_tests/test_list_views.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/_tests/test_post_views.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/about_me.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/post_short.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/base.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/ndbtestcase.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/models.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/view.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/post.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/views.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/menu.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/urls.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/static/blog.css",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/post_full.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/list.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/environ.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/static/blog.js",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/post_list.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/home.html",
+		"/home/fuxi/tmp/google_appengine/lib/django-1.4/django/template/defaultfilters.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/slugify.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/footer.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/remove_me/IPython/html/tests/notebook/shutdown.js",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/remove_me/ipdb_p/ipdb.egg-info/dependency_links.txt",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/layout.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/IPython/nbformat/sign.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/IPython/core/formatters.py",
+		"/home/fuxi/google-cloud-sdk/platform/google_appengine/RELEASE_NOTES",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/categories.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/posts/in_list.html",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/core/templates/navbar.html",
+		"/usr/lib/python2.7/json/encoder.py",
+		"/home/fuxi/projekty/git/gae_blog/djappengine/lib/IPython/external/pexpect/_pexpect.py",
+		"/home/fuxi/projekty/git/gae_blog/appengine-try-python-django/myproject/urls.py",
+		"/home/fuxi/projekty/git/gae_blog/appengine-try-python-django/myproject/settings.py",
+		"/home/fuxi/projekty/git/gae_blog/Dockerfile",
+		"/home/fuxi/projekty/git/gae_blog/appengine-try-python-django/blog/views.py",
+		"/home/fuxi/projekty/git/gae_blog/appengine-try-python-django/hello/views.py",
+		"/home/fuxi/projekty/git/gae_blog/appengine-try-python-django/hello/tests.py",
+		"/home/fuxi/projekty/vector_vs_list/data.csv",
+		"/home/fuxi/projekty/vector_vs_list/vl.cpp",
+		"/home/fuxi/projekty/blog/pelican/site/output/theme/custom.css",
+		"/home/fuxi/projekty/blog/pelican/site/plugins/custom_article_urls/custom_article_urls.py",
+		"/home/fuxi/projekty/blog/pelican/site/output/categories.html",
+		"/home/fuxi/projekty/blog/pelican/site/output/theme/style.css",
+		"/home/fuxi/projekty/blog/pelican/env/lib/python2.7/site-packages/pytz/zoneinfo/Africa/Sao_Tome",
+		"/home/fuxi/projekty/blog/pelican/site/srv.pid"
+	],
+	"find":
+	{
+		"height": 35.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"Handler",
+			"build",
+			"go",
+			"fi",
+			"load_game_files",
+			"json.",
+			"json",
+			"json.",
+			"load_game_from_json",
+			"fmt.",
+			"has_killed",
+			"action",
+			"Game",
+			"features_per_game",
+			"deb",
+			"GOPATH",
+			"posx",
+			"game_data",
+			"'",
+			"move ",
+			"action",
+			"player_pk",
+			"Player",
+			"Unit",
+			"unit",
+			"Unit",
+			"remove",
+			": ",
+			"__process_action__",
+			"COLOR",
+			"color",
+			"):\n",
+			"pygame.Color",
+			"   ",
+			"  ",
+			"    ",
+			"   ",
+			"  ",
+			"    ",
+			"(\"user_tracks.",
+			"latest_sql",
+			"all",
+			"sql_insert_tempate",
+			"reqe",
+			"Could not found any recent tracks",
+			"request_tracks",
+			"fetch_tracks",
+			"request_tracks",
+			"request_recent_tracks",
+			"fetch_tracks",
+			"fetch",
+			"TestFetchingTracks",
+			"api_request_limit",
+			"patch",
+			"_update_db_state",
+			"_utc_timestamp_now",
+			"_prepare_tables",
+			"_get_db_connection",
+			"next_time_range",
+			"API_KEY",
+			"48e30b0cc7a2df581c9ac25ae35df23e",
+			"_update_db_state",
+			"date_time",
+			"_add_tracks_to_db",
+			"insert i",
+			"uni",
+			"date_time",
+			"datetime",
+			"strftime",
+			"datetime",
+			"ipd",
+			"next_time_range",
+			"pop",
+			"remove",
+			"####",
+			"#### ",
+			"        ####",
+			"####",
+			"update_user_tracks",
+			"self.DB_STATE.index",
+			".ut",
+			"monday",
+			"avera",
+			"LastFmApiException",
+			"count",
+			"is_in_db",
+			"is_in",
+			"remove_fr",
+			"latest_sq",
+			"test_fist_request_in_next_session",
+			"max",
+			"max(",
+			"add_to_db",
+			"fake",
+			"test_further_request_in_next_session",
+			"TimeRange",
+			"latest_sql",
+			".latest_sql",
+			"latest_sql",
+			"from_json",
+			"self.TRACKS",
+			"tracks",
+			"track",
+			"self.",
+			"=",
+			" = ",
+			"self.",
+			"latest",
+			"lambda x: ",
+			"latest",
+			"db_state",
+			"assertTimeRangesTableEquals",
+			"set(",
+			"set",
+			"db_loca",
+			"assertHasTimeRanges",
+			"table_empty",
+			"prepate_time_range_state",
+			"[",
+			"list",
+			"timesatmp",
+			"add_to_db",
+			"DB_STATE.append",
+			"DB_STATE.ins",
+			"DB_STATE",
+			"?)\n",
+			"sql_insert_tempate",
+			"as_t"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"\"",
+			"###",
+			"\"",
+			"file_name",
+			"color",
+			"=",
+			"(",
+			"",
+			"(",
+			",",
+			"\", ",
+			")",
+			"ImageObject(",
+			"color",
+			"color_code",
+			"file_name",
+			"fileName",
+			"file",
+			"\", \"",
+			"children",
+			"change_map",
+			"np."
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "main.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 607,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								186,
+								186
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/GoSublime/syntax/GoSublime-Go.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 17.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "bank.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 688,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								666,
+								666
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/GoSublime/syntax/GoSublime-Go.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 255.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "transactions.go",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 529,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								210,
+								210
+							]
+						],
+						"settings":
+						{
+							"spell_check": true,
+							"syntax": "Packages/GoSublime/syntax/GoSublime-Go.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 25.0
+	},
+	"input":
+	{
+		"height": 33.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.9o:///home/fuxi/projekty/hash":
+	{
+		"height": 112.0
+	},
+	"output.MarGo-output":
+	{
+		"height": 112.0
+	},
+	"output.exec":
+	{
+		"height": 112.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.git":
+	{
+		"height": 112.0
+	},
+	"project": "hash.sublime-project",
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"templates/home.html",
+				"djappengine/core/templates/home.html"
+			],
+			[
+				"men.html",
+				"djappengine/core/templates/menu.html"
+			],
+			[
+				"make",
+				"site/Makefile"
+			],
+			[
+				"custom",
+				"site/theme/anew/static/custom.css"
+			],
+			[
+				"style.css",
+				"site/theme/anew/static/style.css"
+			],
+			[
+				"pelicanconf",
+				"env/lib/python2.7/site-packages/pelican/tests/default_conf.py"
+			],
+			[
+				"_thre",
+				"site/theme/anew/templates/disqus_thread.html"
+			],
+			[
+				"article.hml",
+				"site/theme/anew/templates/article.html"
+			],
+			[
+				"post",
+				"site/theme/anew/templates/post.html"
+			],
+			[
+				"analytics",
+				"site/theme/anew/templates/analytics.html"
+			],
+			[
+				"lay",
+				"site/theme/anew/templates/layout.html"
+			],
+			[
+				"settings.p",
+				"env/lib/python2.7/site-packages/pelican/settings.py"
+			],
+			[
+				"2.",
+				"site/content/posts/2.md"
+			],
+			[
+				"pagination",
+				"env/lib/python2.7/site-packages/pelican/themes/simple/templates/pagination.html"
+			],
+			[
+				"stats.",
+				"site/theme/anew/templates/in_list/status.html"
+			],
+			[
+				"layo",
+				"site/theme/anew/templates/layout.html"
+			],
+			[
+				"base.html",
+				"site/theme/anew/templates/base.html"
+			],
+			[
+				"list.html",
+				"site/theme/anew/templates/list.html"
+			],
+			[
+				"index.html",
+				"site/theme/anew/templates/index.html"
+			],
+			[
+				"posttype",
+				"site/theme/anew/templates/posttype.html"
+			],
+			[
+				"req",
+				"requirements.txt"
+			],
+			[
+				"requ",
+				"moja_stronka/requirements.txt"
+			],
+			[
+				"settings",
+				"moja_stronka/settings.py"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"bot",
+				"~/projekty/git/strategy_bots/bots.sublime-project"
+			],
+			[
+				"sho",
+				"~/projekty/Kraggle/shoppers/shoppers.sublime-project"
+			],
+			[
+				"",
+				"~/Dropbox/solr_image/solr-image.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"select_symbol":
+	{
+		"height": 392.0,
+		"selected_items":
+		[
+			[
+				"",
+				"---------------"
+			]
+		],
+		"width": 521.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": false,
+	"side_bar_width": 184.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
