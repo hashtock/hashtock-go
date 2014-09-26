@@ -18,3 +18,6 @@
 - Current portfolio of hash tags
 - Requested operations on maket
 - History of bank/market operations
+
+**Admin**:
+- Add new tag to bank
