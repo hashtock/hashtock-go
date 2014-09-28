@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "net/http"
 
     "appengine"
@@ -17,14 +16,13 @@ func init() {
     r.HandleFunc("/login", Login)
     r.HandleFunc("/logout", Logout)
 
-    r.HandleFunc("/bank/info/{hash}/", bank.HashTagInfoView)
-    r.HandleFunc("/bank/info/", bank.HashTagInfoAllView)
-    r.HandleFunc("/bank/sell_to_user/{hash}/{amount}/", bank.SellToUserView)
-    r.HandleFunc("/bank/buy_from_user/{hash}/{amount}/", bank.BuyFromUserView)
-
-    r.HandleFunc("/user/shares/", profiles.UserSharesView)
-
     r.HandleFunc("/admin/tag/add/{hash}", AddHashTagView)
+
+    bank_routes := r.PathPrefix("/bank/").Subrouter()
+    bank.AttachViews(bank_routes)
+
+    profiles_routes := r.PathPrefix("/user/").Subrouter()
+    profiles.AttachViews(profiles_routes)
 
     http.Handle("/", r)
 }
@@ -47,8 +45,6 @@ func Login(rw http.ResponseWriter, req *http.Request) {
     if err := profiles.CreateNewUserIfDoesNotExist(ctx, *u); err != nil {
         panic(err)
     }
-
-    fmt.Fprintf(rw, "Hello, %v!", u)
 }
 
 func Logout(rw http.ResponseWriter, req *http.Request) {
