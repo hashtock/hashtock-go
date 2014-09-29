@@ -1,21 +1,28 @@
 package main
 
 import (
-    "fmt"
     "net/http"
 
     "appengine"
     "appengine/user"
     "github.com/gorilla/mux"
+
+    "bank"
+    "profiles"
 )
 
 func init() {
     r := mux.NewRouter()
     r.HandleFunc("/login", Login)
     r.HandleFunc("/logout", Logout)
-    r.HandleFunc("/bank/info/{hash}/", HashTagInfoView)
-    r.HandleFunc("/bank/info/", HashTagInfoAllView)
+
     r.HandleFunc("/admin/tag/add/{hash}", AddHashTagView)
+
+    bank_routes := r.PathPrefix("/bank/").Subrouter()
+    bank.AttachViews(bank_routes)
+
+    profiles_routes := r.PathPrefix("/user/").Subrouter()
+    profiles.AttachViews(profiles_routes)
 
     http.Handle("/", r)
 }
@@ -34,7 +41,10 @@ func Login(rw http.ResponseWriter, req *http.Request) {
         rw.WriteHeader(http.StatusFound)
         return
     }
-    fmt.Fprintf(rw, "Hello, %v!", u)
+
+    if err := profiles.CreateNewUserIfDoesNotExist(ctx, *u); err != nil {
+        panic(err)
+    }
 }
 
 func Logout(rw http.ResponseWriter, req *http.Request) {

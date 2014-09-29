@@ -9,15 +9,15 @@
 - Currnet bank value of all hash tags it knows about, and how much does it have for sell
 
 **Market**:
-- Accepts buy offers for a given hashtag+price+amount
-- Accepts sell offers for a given hashtag+price+amount
-- Allows to cancel any request if not fulfilled
+- Accepts buy offers for a given hashtag+price+amount (**ToDo**)
+- Accepts sell offers for a given hashtag+price+amount (**ToDo**)
+- Allows to cancel any request if not fulfilled (**ToDo**)
 
 **Client**:
 - Account balance
 - Current portfolio of hash tags
-- Requested operations on maket
-- History of bank/market operations
+- Requested operations on maket (**ToDo**)
+- History of bank/market operations (**ToDo**)
 
 **Admin**:
 - Add new tag to bank
