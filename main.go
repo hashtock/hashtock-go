@@ -8,6 +8,7 @@ import (
     "github.com/gorilla/mux"
 
     "bank"
+    "market"
     "profiles"
 )
 
@@ -23,6 +24,9 @@ func init() {
 
     profiles_routes := r.PathPrefix("/user/").Subrouter()
     profiles.AttachViews(profiles_routes)
+
+    market_routes := r.PathPrefix("/market/").Subrouter()
+    market.AttachViews(market_routes)
 
     http.Handle("/", r)
 }

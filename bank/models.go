@@ -19,7 +19,7 @@ func (b *BankEntry) Key(ctx appengine.Context) (key *datastore.Key) {
     return Key(ctx, b.Hash)
 }
 
-func (b *BankEntry) Save(ctx appengine.Context) (err error) {
+func (b *BankEntry) Put(ctx appengine.Context) (err error) {
     key := b.Key(ctx)
     _, err = datastore.Put(ctx, key, b)
     return
