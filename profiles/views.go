@@ -5,12 +5,7 @@ import (
     "net/http"
 
     "appengine"
-    "github.com/gorilla/mux"
 )
-
-func AttachViews(r *mux.Router) {
-    r.HandleFunc("/user/shares/", UserSharesView)
-}
 
 func UserSharesView(rw http.ResponseWriter, req *http.Request) {
     ctx := appengine.NewContext(req)

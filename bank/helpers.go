@@ -52,15 +52,15 @@ func SellToUser(ctx appengine.Context, hash string, amount float64) (err error) 
     user_share.Quantity += amount
     bank_share.InBank -= amount
 
-    if err = profile.Save(ctx); err != nil {
+    if err = profile.Put(ctx); err != nil {
         return
     }
 
-    if err = user_share.Save(ctx); err != nil {
+    if err = user_share.Put(ctx); err != nil {
         return
     }
 
-    if err = bank_share.Save(ctx); err != nil {
+    if err = bank_share.Put(ctx); err != nil {
         return
     }
 
@@ -91,15 +91,15 @@ func BuyFromUser(ctx appengine.Context, hash string, amount float64) (err error)
     user_share.Quantity -= amount
     bank_share.InBank += amount
 
-    if err = profile.Save(ctx); err != nil {
+    if err = profile.Put(ctx); err != nil {
         return
     }
 
-    if err = user_share.Save(ctx); err != nil {
+    if err = user_share.Put(ctx); err != nil {
         return
     }
 
-    if err = bank_share.Save(ctx); err != nil {
+    if err = bank_share.Put(ctx); err != nil {
         return
     }
 

@@ -21,7 +21,7 @@ func (u *UserShare) Key(ctx appengine.Context) (key *datastore.Key) {
     return Key(ctx, u.UserID, u.profile_key)
 }
 
-func (u *UserShare) Save(ctx appengine.Context) (err error) {
+func (u *UserShare) Put(ctx appengine.Context) (err error) {
     key := u.Key(ctx)
     _, err = datastore.Put(ctx, key, u)
     return

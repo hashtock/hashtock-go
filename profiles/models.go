@@ -20,7 +20,7 @@ func (p *Profile) Key(ctx appengine.Context) (key *datastore.Key) {
     return Key(ctx, p.UserID)
 }
 
-func (p *Profile) Save(ctx appengine.Context) (err error) {
+func (p *Profile) Put(ctx appengine.Context) (err error) {
     key := p.Key(ctx)
     _, err = datastore.Put(ctx, key, p)
     return

@@ -6,16 +6,21 @@ import (
     "appengine/user"
 )
 
-func CurrentProfile(ctx appengine.Context) (profile Profile, err error) {
+func CurrentProfileKey(ctx appengine.Context) (key *datastore.Key) {
     u := user.Current(ctx)
-    key := Key(ctx, u.Email)
+    key = Key(ctx, u.Email)
+    return
+}
+
+func CurrentProfile(ctx appengine.Context) (profile Profile, err error) {
+    key := CurrentProfileKey(ctx)
 
     err = datastore.Get(ctx, key, &profile)
     return
 }
 
 func CreateNewUserIfDoesNotExist(ctx appengine.Context, current_user user.User) (err error) {
-    key := Key(ctx, current_user.Email)
+    key := CurrentProfileKey(ctx)
 
     profile := Profile{
         UserID: current_user.Email,
