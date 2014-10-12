@@ -12,11 +12,17 @@ func SerializeResponse(rw http.ResponseWriter, req *http.Request, obj interface{
 
     var data []byte
 
+    q := req.URL.Query()
+    switch q.Get("format") {
+    case "json":
+        accept = "application/json"
+    }
+
     switch accept {
     case "application/json":
         data, err = json.Marshal(obj)
     default:
-        err = errors.New(fmt.Sprintf("Unsupported content type: %s", accept))
+        err = errors.New(fmt.Sprintf("Unsupported content type: %#v", accept))
     }
 
     if err != nil {
