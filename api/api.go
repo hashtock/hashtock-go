@@ -26,9 +26,8 @@ type Api struct {
 }
 
 func NewApi(router *mux.Router, resource ...Resourcer) *Api {
-    api := Api{ //a.resource_path(resource, endpoint, true)
+    api := Api{
         endpoints: map[string]string{},
-        // endpoints: map[string]map[string]*EndPoint{},
     }
 
     api.SetRouter(router)
@@ -45,7 +44,6 @@ func NewApi(router *mux.Router, resource ...Resourcer) *Api {
 func (a *Api) SetRouter(router *mux.Router) {
     a.router = router
     a.router.HandleFunc("/", a.resouce_endpoints).Methods("GET").Name("API_INFO")
-
     base_route := a.router.Get("API_INFO")
     if url, err := base_route.URLPath(); err == nil {
         a.baseURI = url.Path
@@ -60,8 +58,6 @@ func (a *Api) AddResouce(resource Resourcer) error {
         return fmt.Errorf("API: Resource %#v already on added", resource)
     }
 
-    // a.endpoints[name] = map[string]*EndPoint{}
-
     a.registerEndpoints(resource)
 
     return nil
@@ -73,8 +69,9 @@ func (a *Api) MarshalJSON() ([]byte, error) {
 
 func (a *Api) resource_path(resource Resourcer, endpoint *EndPoint, full bool) (path string) {
     var (
-        buff                  bytes.Buffer
-        baseURI, endpoint_uri string
+        buff         bytes.Buffer
+        baseURI      string
+        endpoint_uri string
     )
 
     if endpoint != nil {

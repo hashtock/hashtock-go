@@ -40,4 +40,3 @@ URI prefix: `/api/`
 | /tag/{hash}/    | POST   | Update info about the tag (admin)     |
 | /user/          | GET    | High level user details               |
 | /user/tags/     | GET    | List of users shares of tags          |
-|-----------------|--------|---------------------------------------|
