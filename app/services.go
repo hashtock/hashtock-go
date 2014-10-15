@@ -9,8 +9,7 @@ import (
     "github.com/hashtock/hashtock-go/models"
 )
 
-type CurrentUserService struct {
-}
+type CurrentUserService struct{}
 
 func (c *CurrentUserService) Name() string {
     return "user"
@@ -36,7 +35,8 @@ func (c *CurrentUserService) Profile(rw http.ResponseWriter, req *http.Request) 
 func (c *CurrentUserService) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
     if _, err := models.GetProfile(req); err != nil {
         http.Error(rw, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-    } else {
-        next(rw, req)
+        return
     }
+
+    next(rw, req)
 }

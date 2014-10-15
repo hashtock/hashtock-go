@@ -30,7 +30,12 @@ type Json map[string]interface{}
 
 func (s *ExampleTestSuite) SetupTest() {
     var err error
-    s.inst, err = aetest.NewInstance(nil)
+
+    options := &aetest.Options{
+        StronglyConsistentDatastore: true,
+    }
+
+    s.inst, err = aetest.NewInstance(options)
     if err != nil {
         s.T().Fatal(err)
     }

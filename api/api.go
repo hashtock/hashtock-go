@@ -8,6 +8,7 @@ import (
     "net/http"
     "strings"
 
+    "github.com/codegangsta/negroni"
     "github.com/gorilla/mux"
 
     "github.com/hashtock/hashtock-go/http_utils"
@@ -26,8 +27,9 @@ type Api struct {
 }
 
 func NewApi(router *mux.Router, resource ...Resourcer) *Api {
-    api := Api{
+    api := &Api{
         endpoints: map[string]string{},
+        resources: map[string]Resourcer{},
     }
 
     api.SetRouter(router)
@@ -38,7 +40,7 @@ func NewApi(router *mux.Router, resource ...Resourcer) *Api {
         }
     }
 
-    return &api
+    return api
 }
 
 func (a *Api) SetRouter(router *mux.Router) {
@@ -57,6 +59,8 @@ func (a *Api) AddResouce(resource Resourcer) error {
     if _, exist := a.resources[name]; exist {
         return fmt.Errorf("API: Resource %#v already on added", resource)
     }
+
+    a.resources[name] = resource
 
     a.registerEndpoints(resource)
 
@@ -117,4 +121,16 @@ func (a *Api) registerEndpoints(resource Resourcer) {
 
 func (a *Api) resouce_endpoints(rw http.ResponseWriter, req *http.Request) {
     http_utils.SerializeResponse(rw, req, a, http.StatusOK)
+}
+
+func (a *Api) Middlewares() (handlers []negroni.Handler) {
+    handlers = make([]negroni.Handler, 0)
+
+    for _, resource := range a.resources {
+        if negHandler, ok := resource.(negroni.Handler); ok {
+            handlers = append(handlers, negHandler)
+        }
+    }
+
+    return
 }
