@@ -14,7 +14,8 @@ func init() {
     app_routes := r.PathPrefix("/api/").Subrouter()
 
     user_service := &CurrentUserService{}
-    myapi := api.NewApi(app_routes, user_service)
+    tag_service := &HashTagService{}
+    myapi := api.NewApi(app_routes, user_service, tag_service)
 
     n := negroni.New(myapi.Middlewares()...)
     n.UseHandler(r)

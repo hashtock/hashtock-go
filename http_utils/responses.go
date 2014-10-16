@@ -35,3 +35,16 @@ func SerializeResponse(rw http.ResponseWriter, req *http.Request, obj interface{
     rw.Write(data)
     return
 }
+
+func SerializeErrorResponse(rw http.ResponseWriter, req *http.Request, err error) error {
+    var (
+        http_err HttpError
+        ok       bool
+    )
+
+    if http_err, ok = err.(HttpError); !ok {
+        http_err = NewHttpError(http.StatusInternalServerError, err.Error())
+    }
+
+    return SerializeResponse(rw, req, http_err, http_err.ErrCode())
+}

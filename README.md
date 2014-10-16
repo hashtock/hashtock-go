@@ -27,16 +27,16 @@
 
 URI prefix: `/api/`
 
-| URI             | Method | Description                           |
-|-----------------|--------|---------------------------------------|
-| /               | GET    | Main entry points to resouces         |
-| /order/         | GET    | List of current orders                |
-| /order/         | POST   | Add new order                         |
-| /order/{uuid}/  | GET    | Order details                         |
-| /order/{uuid}/  | DELETE | Cancel the order                      |
-| /order/history/ | GET    | List of all orders                    |
-| /tag/           | GET    | List of all tags with bank values     |
-| /tag/{hash}/    | GET    | Details about the hash tag            |
-| /tag/{hash}/    | POST   | Update info about the tag (admin)     |
-| /user/          | GET    | High level user details               |
-| /user/tags/     | GET    | List of users shares of tags          |
+| URI             | Method | Description                           | Done? |
+|-----------------|--------|---------------------------------------|-------|
+| /               | GET    | Main entry points to resouces         |  [x]  |
+| /order/         | GET    | List of current orders                |  [ ]  |
+| /order/         | POST   | Add new order                         |  [ ]  |
+| /order/{uuid}/  | GET    | Order details                         |  [ ]  |
+| /order/{uuid}/  | DELETE | Cancel the order                      |  [ ]  |
+| /order/history/ | GET    | List of all orders                    |  [ ]  |
+| /tag/           | GET    | List of all tags with bank values     |  [x]  |
+| /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |
+| /tag/{hash}/    | POST   | Update info about the tag (admin)     |  [ ]  |
+| /user/          | GET    | High level user details               |  [x]  |
+| /user/tags/     | GET    | List of users shares of tags          |  [ ]  |

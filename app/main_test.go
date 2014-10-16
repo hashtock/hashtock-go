@@ -25,6 +25,7 @@ type ExampleTestSuite struct {
 }
 
 type Json map[string]interface{}
+type JsonList []Json
 
 /* Suite setup and generic helper methods */
 
@@ -74,27 +75,40 @@ func (s *ExampleTestSuite) NewRequest(method, urlStr string, body io.Reader) (re
     return
 }
 
+func (e *ExampleTestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *user.User) (req *http.Request) {
+    req = e.NewRequest(method, urlStr, body)
+
+    req.Header.Add("Accept", "application/json")
+
+    if u != nil {
+        aetest.Login(u, req)
+    } else {
+        aetest.Logout(req)
+    }
+
+    return
+}
+
 func (s *ExampleTestSuite) Do(req *http.Request) (rec *httptest.ResponseRecorder) {
     rec = httptest.NewRecorder()
     http.DefaultServeMux.ServeHTTP(rec, req)
     return
 }
 
-func (s *ExampleTestSuite) ExecuteJsonRequest(method, urlStr string, body io.Reader, user *user.User) (rec *httptest.ResponseRecorder) {
-    req := s.NewRequest("GET", urlStr, nil)
-    req.Header.Add("Accept", "application/json")
-
-    if user != nil {
-        aetest.Login(user, req)
-    } else {
-        aetest.Logout(req)
-    }
+func (s *ExampleTestSuite) ExecuteJsonRequest(method, urlStr string, body io.Reader, u *user.User) (rec *httptest.ResponseRecorder) {
+    req := s.NewJsonRequest(method, urlStr, body, u)
 
     return s.Do(req)
 }
 
 func (s *ExampleTestSuite) jsonResponceToStringMap(rec *httptest.ResponseRecorder) Json {
     json_map := Json{}
+    json.Unmarshal(rec.Body.Bytes(), &json_map)
+    return json_map
+}
+
+func (s *ExampleTestSuite) jsonResponceToListOfStringMap(rec *httptest.ResponseRecorder) JsonList {
+    json_map := JsonList{}
     json.Unmarshal(rec.Body.Bytes(), &json_map)
     return json_map
 }
@@ -107,6 +121,7 @@ func (s *ExampleTestSuite) TestApiHasAllEndpoints() {
 
     expected := Json{
         "user": "/api/user/",
+        "tag":  "/api/tag/",
     }
 
     s.Equal(http.StatusOK, rec.Code)
@@ -134,6 +149,80 @@ func (s *ExampleTestSuite) TestProfileExistForLoggedInUser() {
 
     s.Equal(http.StatusOK, rec.Code)
     s.Equal(expected, json_body)
+}
+
+func (s *ExampleTestSuite) TestGetListOfTags() {
+    req := s.NewJsonRequest("GET", "/api/tag/", nil, s.user)
+
+    t1 := models.HashTag{
+        HashTag: "XTag1",
+        Value:   10.5,
+        InBank:  100.0,
+    }
+    t2 := models.HashTag{
+        HashTag: "Tag2",
+        Value:   1,
+        InBank:  50.2,
+    }
+    t1.Put(req)
+    t2.Put(req)
+
+    rec := s.Do(req)
+    json_body := s.jsonResponceToListOfStringMap(rec)
+
+    // Order matters
+    expected := JsonList{
+        Json{
+            "hashtag": "XTag1",
+            "value":   10.5,
+            "in_bank": 100.0,
+        },
+        Json{
+            "hashtag": "Tag2",
+            "value":   1,
+            "in_bank": 50.2,
+        },
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *ExampleTestSuite) TestGetSingleTag() {
+    req := s.NewJsonRequest("GET", "/api/tag/TestTag/", nil, s.user)
+
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   10.5,
+        InBank:  100.0,
+    }
+    tag.Put(req)
+
+    rec := s.Do(req)
+    json_body := s.jsonResponceToStringMap(rec)
+
+    // Order matters
+    expected := Json{
+        "hashtag": "TestTag",
+        "value":   10.5,
+        "in_bank": 100.0,
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *ExampleTestSuite) TestGetUnExistingTag() {
+    rec := s.ExecuteJsonRequest("GET", "/api/tag/MISSING/", nil, s.user)
+    json_body := s.jsonResponceToStringMap(rec)
+
+    expected := Json{
+        "code":  http.StatusNotFound,
+        "error": "HashTag \"MISSING\" not found",
+    }
+
+    s.Equal(http.StatusNotFound, rec.Code)
+    s.Equal(expected, json_body) // This is not very robust for error msg
 }
 
 /* Kickoff Test Suite */
