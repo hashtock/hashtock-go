@@ -8,11 +8,11 @@ import (
     "github.com/hashtock/hashtock-go/models"
 )
 
-type ExampleTestSuite struct {
+type FunctionalTestSuite struct {
     gaetestsuite.GAETestSuite
 }
 
-func (s *ExampleTestSuite) TestApiHasAllEndpoints() {
+func (s *FunctionalTestSuite) TestApiHasAllEndpoints() {
     rec := s.ExecuteJsonRequest("GET", "/api/", nil, s.User)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -25,7 +25,7 @@ func (s *ExampleTestSuite) TestApiHasAllEndpoints() {
     s.Equal(expected, json_body)
 }
 
-func (s *ExampleTestSuite) TestUserHasToBeLoggedIn() {
+func (s *FunctionalTestSuite) TestUserHasToBeLoggedIn() {
     expectedStatus := http.StatusForbidden
     expectedBody := http.StatusText(expectedStatus) + "\n"
 
@@ -35,7 +35,7 @@ func (s *ExampleTestSuite) TestUserHasToBeLoggedIn() {
     s.Equal(expectedStatus, rec.Code)
 }
 
-func (s *ExampleTestSuite) TestProfileExistForLoggedInUser() {
+func (s *FunctionalTestSuite) TestProfileExistForLoggedInUser() {
     rec := s.ExecuteJsonRequest("GET", "/api/user/", nil, s.User)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -48,7 +48,7 @@ func (s *ExampleTestSuite) TestProfileExistForLoggedInUser() {
     s.Equal(expected, json_body)
 }
 
-func (s *ExampleTestSuite) TestGetListOfTags() {
+func (s *FunctionalTestSuite) TestGetListOfTags() {
     req := s.NewJsonRequest("GET", "/api/tag/", nil, s.User)
 
     t1 := models.HashTag{
@@ -85,7 +85,7 @@ func (s *ExampleTestSuite) TestGetListOfTags() {
     s.Equal(expected, json_body)
 }
 
-func (s *ExampleTestSuite) TestGetSingleTag() {
+func (s *FunctionalTestSuite) TestGetSingleTag() {
     req := s.NewJsonRequest("GET", "/api/tag/TestTag/", nil, s.User)
 
     tag := models.HashTag{
@@ -109,7 +109,7 @@ func (s *ExampleTestSuite) TestGetSingleTag() {
     s.Equal(expected, json_body)
 }
 
-func (s *ExampleTestSuite) TestGetUnExistingTag() {
+func (s *FunctionalTestSuite) TestGetUnExistingTag() {
     rec := s.ExecuteJsonRequest("GET", "/api/tag/MISSING/", nil, s.User)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -124,6 +124,6 @@ func (s *ExampleTestSuite) TestGetUnExistingTag() {
 
 /* Kickoff Test Suite */
 
-func TestExampleTestSuite(t *testing.T) {
-    gaetestsuite.Run(t, new(ExampleTestSuite))
+func TestFunctionalTestSuite(t *testing.T) {
+    gaetestsuite.Run(t, new(FunctionalTestSuite))
 }
