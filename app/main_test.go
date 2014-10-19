@@ -122,6 +122,49 @@ func (s *FunctionalTestSuite) TestGetUnExistingTag() {
     s.Equal(expected, json_body) // This is not very robust for error msg
 }
 
+func (s *FunctionalTestSuite) TestGetUsersTags() {
+    req := s.NewJsonRequest("GET", "/api/user/tags/", nil, s.User)
+
+    t1 := models.TagShare{
+        HashTag:  "Tag1",
+        Quantity: 10.5,
+        UserID:   s.User.Email,
+    }
+    t2 := models.TagShare{
+        HashTag:  "Tag2",
+        Quantity: 0.2,
+        UserID:   s.User.Email,
+    }
+    t3 := models.TagShare{
+        HashTag:  "Tag1",
+        Quantity: 1,
+        UserID:   "OtherID",
+    }
+    t1.Put(req)
+    t2.Put(req)
+    t3.Put(req)
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToListOfStringMap(rec)
+
+    // Order matters
+    expected := gaetestsuite.JsonList{
+        gaetestsuite.Json{
+            "hashtag":  "Tag1",
+            "quantity": 10.5,
+            "user_id":  s.User.Email,
+        },
+        gaetestsuite.Json{
+            "hashtag":  "Tag2",
+            "quantity": 0.2,
+            "user_id":  s.User.Email,
+        },
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
 /* Kickoff Test Suite */
 
 func TestFunctionalTestSuite(t *testing.T) {
