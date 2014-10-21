@@ -10,13 +10,18 @@ package gaetestsuite
 // }
 
 import (
+    "bytes"
     "encoding/json"
     "io"
+    "log"
     "net/http"
     "net/http/httptest"
     "testing"
+    "time"
 
+    "appengine"
     "appengine/aetest"
+    "appengine/datastore"
     "appengine/user"
 
     "github.com/stretchr/testify/suite"
@@ -29,12 +34,18 @@ type GAETestSuite struct {
     User      *user.User
     AdminUser *user.User
     NoUser    *user.User
+
+    tm_suite_start time.Time
+}
+
+type testStruct struct {
+    data string
 }
 
 type Json map[string]interface{}
 type JsonList []Json
 
-func (g *GAETestSuite) SetupTest() {
+func (g *GAETestSuite) SetupSuite() {
     var err error
 
     options := &aetest.Options{
@@ -46,13 +57,50 @@ func (g *GAETestSuite) SetupTest() {
         g.T().Fatal(err)
     }
 
+    g.tm_suite_start = time.Now()
+}
+
+func (g *GAETestSuite) TearDownSuite() {
+    durration := time.Since(g.tm_suite_start)
+
+    g.Inst.Close()
+
+    log.Printf("Tests took: %v", durration)
+}
+
+func (g *GAETestSuite) SetupTest() {
+    g.ClearDB()
+
     g.User = g.MakeUser()
     g.AdminUser = g.MakeAdminUser()
     g.NoUser = nil
 }
 
-func (g *GAETestSuite) TearDownTest() {
-    g.Inst.Close()
+func (g *GAETestSuite) ClearDB() {
+    ctx := g.NewContext()
+    keys, err := datastore.NewQuery("").KeysOnly().GetAll(ctx, nil)
+    if err != nil {
+        g.T().Fatal(err)
+    }
+
+    if err := datastore.DeleteMulti(ctx, keys); err != nil {
+        g.T().Fatal(err)
+    }
+}
+
+func (g *GAETestSuite) NewContext() appengine.Context {
+    req := g.NewRequest("GET", "/", nil)
+    return appengine.NewContext(req)
+}
+
+func (g *GAETestSuite) datastoreSize() int {
+    ctx := g.NewContext()
+    count, err := datastore.NewQuery("").Count(ctx)
+    if err != nil {
+        g.T().Fatal(err)
+    }
+
+    return count
 }
 
 func (g *GAETestSuite) MakeAdminUser() (u *user.User) {
@@ -84,6 +132,9 @@ func (g *GAETestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *
     req = g.NewRequest(method, urlStr, body)
 
     req.Header.Add("Accept", "application/json")
+    if method == "POST" {
+        req.Header.Add("content-type", "application/json")
+    }
 
     if u != nil {
         aetest.Login(u, req)
@@ -92,6 +143,18 @@ func (g *GAETestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *
     }
 
     return
+}
+
+func (g *GAETestSuite) ToJsonBody(data interface{}) (body io.Reader) {
+    var (
+        err       error
+        marshaled []byte
+    )
+
+    if marshaled, err = json.Marshal(data); err != nil {
+        g.T().Fatal(err)
+    }
+    return bytes.NewBuffer(marshaled)
 }
 
 func (g *GAETestSuite) Do(req *http.Request) (rec *httptest.ResponseRecorder) {
@@ -108,14 +171,31 @@ func (g *GAETestSuite) ExecuteJsonRequest(method, urlStr string, body io.Reader,
 
 func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) Json {
     json_map := Json{}
-    json.Unmarshal(rec.Body.Bytes(), &json_map)
+    if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
+        g.T().Fatalf("Could not unmarshal: %s", rec.Body.String())
+    }
     return json_map
 }
 
 func (g *GAETestSuite) JsonResponceToListOfStringMap(rec *httptest.ResponseRecorder) JsonList {
     json_map := JsonList{}
-    json.Unmarshal(rec.Body.Bytes(), &json_map)
+    if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
+        g.T().Fatalf("Could not unmarshal: %s", rec.Body.String())
+    }
     return json_map
+}
+
+func (g *GAETestSuite) TestCleanUp() {
+    ctx := g.NewContext()
+    key := datastore.NewKey(ctx, "__TestEntity__", "abc", 0, nil)
+    data := testStruct{}
+    datastore.Put(ctx, key, &data)
+
+    g.Equal(1, g.datastoreSize())
+
+    g.ClearDB()
+
+    g.Equal(0, g.datastoreSize())
 }
 
 func Run(t *testing.T, test_suite suite.TestingSuite) {

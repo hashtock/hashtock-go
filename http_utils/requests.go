@@ -19,6 +19,8 @@ func DeSerializeRequest(req http.Request, obj interface{}) (err error) {
     switch content_type {
     case "application/json":
         err = json.Unmarshal(body, &obj)
+    case "":
+        err = errors.New("Content type not specified")
     default:
         err = errors.New(fmt.Sprintf("Unsupported content type: %s", content_type))
     }

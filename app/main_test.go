@@ -17,8 +17,9 @@ func (s *FunctionalTestSuite) TestApiHasAllEndpoints() {
     json_body := s.JsonResponceToStringMap(rec)
 
     expected := gaetestsuite.Json{
-        "user": "/api/user/",
-        "tag":  "/api/tag/",
+        "user":  "/api/user/",
+        "tag":   "/api/tag/",
+        "order": "/api/order/",
     }
 
     s.Equal(http.StatusOK, rec.Code)
@@ -125,21 +126,9 @@ func (s *FunctionalTestSuite) TestGetUnExistingTag() {
 func (s *FunctionalTestSuite) TestGetUsersTags() {
     req := s.NewJsonRequest("GET", "/api/user/tags/", nil, s.User)
 
-    t1 := models.TagShare{
-        HashTag:  "Tag1",
-        Quantity: 10.5,
-        UserID:   s.User.Email,
-    }
-    t2 := models.TagShare{
-        HashTag:  "Tag2",
-        Quantity: 0.2,
-        UserID:   s.User.Email,
-    }
-    t3 := models.TagShare{
-        HashTag:  "Tag1",
-        Quantity: 1,
-        UserID:   "OtherID",
-    }
+    t1 := models.TagShare{HashTag: "Tag1", Quantity: 10.5, UserID: s.User.Email}
+    t2 := models.TagShare{HashTag: "Tag2", Quantity: 0.20, UserID: s.User.Email}
+    t3 := models.TagShare{HashTag: "Tag1", Quantity: 1.00, UserID: "OtherID"}
     t1.Put(req)
     t2.Put(req)
     t3.Put(req)
@@ -163,6 +152,57 @@ func (s *FunctionalTestSuite) TestGetUsersTags() {
 
     s.Equal(http.StatusOK, rec.Code)
     s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
+    order := models.OrderBase{
+        Action:    "buy",
+        BankOrder: true,
+        HashTag:   "Tag1",
+        Quantity:  1.00,
+    }
+
+    body := s.ToJsonBody(order)
+    req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+    json_body["uuid"] = "uuid"
+
+    expected := gaetestsuite.Json{
+        "action":     "buy",
+        "hashtag":    "Tag1",
+        "quantity":   1.00,
+        "user_id":    s.User.Email,
+        "bank_order": true,
+        "complete":   false,
+        "uuid":       "uuid",
+    }
+
+    s.Equal(http.StatusCreated, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
+    order := models.OrderBase{
+        Action:    "freebe",
+        BankOrder: true,
+        HashTag:   "",
+        Quantity:  101.00,
+    }
+
+    body := s.ToJsonBody(order)
+    req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
+
+    rec := s.Do(req)
+    // json_body := s.JsonResponceToStringMap(rec)
+
+    // expected := gaetestsuite.Json{
+    //     "code": 400,
+    // }
+
+    s.Equal(http.StatusBadRequest, rec.Code)
+    // s.Equal(expected, json_body)
 }
 
 /* Kickoff Test Suite */

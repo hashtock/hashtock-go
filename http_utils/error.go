@@ -36,6 +36,13 @@ func NewNotFoundError(message string) HttpError {
     }
 }
 
+func NewBadRequestError(message string) HttpError {
+    return HttpError{
+        Code:    http.StatusBadRequest,
+        Message: message,
+    }
+}
+
 func NewInternalServerError(message string) HttpError {
     return HttpError{
         Code:    http.StatusInternalServerError,
