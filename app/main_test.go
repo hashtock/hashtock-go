@@ -165,6 +165,9 @@ func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
     body := s.ToJsonBody(order)
     req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
 
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
     json_body["uuid"] = "uuid"
@@ -195,14 +198,15 @@ func (s *FunctionalTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
     req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
 
     rec := s.Do(req)
-    // json_body := s.JsonResponceToStringMap(rec)
+    json_body := s.JsonResponceToStringMap(rec)
 
-    // expected := gaetestsuite.Json{
-    //     "code": 400,
-    // }
+    expected := gaetestsuite.Json{
+        "code":  400,
+        "error": "Incorrect fields: action, hashtag, quantity",
+    }
 
     s.Equal(http.StatusBadRequest, rec.Code)
-    // s.Equal(expected, json_body)
+    s.Equal(expected, json_body)
 }
 
 /* Kickoff Test Suite */

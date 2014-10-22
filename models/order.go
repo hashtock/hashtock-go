@@ -3,6 +3,7 @@ package models
 import (
     "fmt"
     "net/http"
+    "strings"
 
     "appengine"
     "appengine/datastore"
@@ -50,14 +51,22 @@ func (o *Order) Put(req *http.Request) (err error) {
 }
 
 func (o *OrderBase) IsValid(req *http.Request) (err error) {
-    field_errors := map[string]string{}
+    fields := []string{}
 
     if (o.Action != actionBuy) && (o.Action != actionSell) {
-        field_errors["action"] = fmt.Sprintf("Action %#v is not supported", o.Action)
+        fields = append(fields, "action")
     }
 
-    if len(field_errors) > 0 {
-        msg := fmt.Sprintf("Incorrect fields: %v", field_errors)
+    if !hashTagExists(req, o.HashTag) {
+        fields = append(fields, "hashtag")
+    }
+
+    if o.Quantity <= 0 || o.Quantity > 100 {
+        fields = append(fields, "quantity")
+    }
+
+    if len(fields) > 0 {
+        msg := fmt.Sprintf("Incorrect fields: %s", strings.Join(fields, ", "))
         err = http_utils.NewBadRequestError(msg)
     }
     return

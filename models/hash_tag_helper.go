@@ -3,6 +3,7 @@ package models
 import (
     "fmt"
     "net/http"
+    "strings"
 
     "appengine"
     "appengine/datastore"
@@ -37,4 +38,18 @@ func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *HashTag, err
     }
 
     return
+}
+
+func hashTagExists(req *http.Request, hash_tag_name string) bool {
+    if strings.TrimSpace(hash_tag_name) != hash_tag_name || (hash_tag_name == "") {
+        return false
+    }
+
+    ctx := appengine.NewContext(req)
+
+    q := datastore.NewQuery(hashTagKind).Filter("HashTag =", hash_tag_name)
+
+    count, err := q.Count(ctx)
+
+    return count > 0 || err != nil
 }

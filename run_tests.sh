@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 
-# -test.v
-cd app && goapp test
+v=""
+if [[ $1 == '-v' ]]; then
+    v="-test.v"
+fi
+
+cd app && goapp test $v
