@@ -31,9 +31,9 @@ URI prefix: `/api/`
 |-----------------|--------|---------------------------------------|-------|
 | /               | GET    | Main entry points to resouces         |  [x]  |
 | /order/         | GET    | List of current orders                |  [ ]  |
-| /order/         | POST   | Add new order                         |  [ ]  |
-| /order/{uuid}/  | GET    | Order details                         |  [ ]  |
-| /order/{uuid}/  | DELETE | Cancel the order                      |  [ ]  |
+| /order/         | POST   | Add new order                         |  [x]  |
+| /order/{uuid}/  | GET    | Order details                         |  [x]  |
+| /order/{uuid}/  | DELETE | Cancel the order                      |  [x]  |
 | /order/history/ | GET    | List of all orders                    |  [ ]  |
 | /tag/           | GET    | List of all tags with bank values     |  [x]  |
 | /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |

@@ -50,6 +50,14 @@ func (o *Order) Put(req *http.Request) (err error) {
     return
 }
 
+func (o *Order) Delete(req *http.Request) (err error) {
+    ctx := appengine.NewContext(req)
+
+    key := o.key(ctx)
+    err = datastore.Delete(ctx, key)
+    return
+}
+
 func (o *OrderBase) IsValid(req *http.Request) (err error) {
     fields := []string{}
 
@@ -70,4 +78,19 @@ func (o *OrderBase) IsValid(req *http.Request) (err error) {
         err = http_utils.NewBadRequestError(msg)
     }
     return
+}
+
+func (o *Order) canAccess(req *http.Request) (ok bool, err error) {
+    var profile *Profile
+
+    if profile, err = GetProfile(req); err != nil {
+        return
+    }
+
+    ok = o.UserID == profile.UserID
+    return
+}
+
+func (o *Order) isCancellable() bool {
+    return o.Complete == false
 }

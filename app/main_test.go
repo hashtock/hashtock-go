@@ -170,7 +170,7 @@ func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
 
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
-    json_body["uuid"] = "uuid"
+    uuid := json_body["uuid"]
 
     expected := gaetestsuite.Json{
         "action":     "buy",
@@ -179,7 +179,7 @@ func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
         "user_id":    s.User.Email,
         "bank_order": true,
         "complete":   false,
-        "uuid":       "uuid",
+        "uuid":       uuid.(string),
     }
 
     s.Equal(http.StatusCreated, rec.Code)
@@ -207,6 +207,126 @@ func (s *FunctionalTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
 
     s.Equal(http.StatusBadRequest, rec.Code)
     s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestGetOrderDetails() {
+    req := s.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, s.User)
+
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
+    order := models.Order{
+        OrderBase: models.OrderBase{
+            Action:    "buy",
+            BankOrder: true,
+            HashTag:   "Tag1",
+            Quantity:  1.00,
+        },
+        OrderSystem: models.OrderSystem{
+            UUID:     "FAKE-UUID",
+            UserID:   s.User.Email,
+            Complete: false,
+        },
+    }
+    order.Put(req)
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "action":     "buy",
+        "hashtag":    "Tag1",
+        "quantity":   1.00,
+        "user_id":    s.User.Email,
+        "bank_order": true,
+        "complete":   false,
+        "uuid":       "FAKE-UUID",
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestGetOrderDiffenreUser() {
+    req := s.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, s.User)
+
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
+    order := models.Order{
+        OrderBase: models.OrderBase{
+            Action:    "buy",
+            BankOrder: true,
+            HashTag:   "Tag1",
+            Quantity:  1.00,
+        },
+        OrderSystem: models.OrderSystem{
+            UUID:     "FAKE-UUID",
+            UserID:   "SOME USER",
+            Complete: false,
+        },
+    }
+    order.Put(req)
+
+    rec := s.Do(req)
+
+    s.Equal(http.StatusNotFound, rec.Code)
+}
+
+func (s *FunctionalTestSuite) TestCancelOrder() {
+    req := s.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, s.User)
+
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
+    order := models.Order{
+        OrderBase: models.OrderBase{
+            Action:    "buy",
+            BankOrder: true,
+            HashTag:   "Tag1",
+            Quantity:  1.00,
+        },
+        OrderSystem: models.OrderSystem{
+            UUID:     "FAKE-UUID",
+            UserID:   s.User.Email,
+            Complete: false,
+        },
+    }
+    order.Put(req)
+
+    rec := s.Do(req)
+
+    s.Equal(http.StatusNoContent, rec.Code)
+    s.Equal(0, rec.Body.Len())
+
+    cancelled_order, _ := models.GetOrder(req, "FAKE-UUID")
+    s.Nil(cancelled_order)
+}
+
+func (s *FunctionalTestSuite) TestCancelCompetedOrder() {
+    req := s.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, s.User)
+
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
+    order := models.Order{
+        OrderBase: models.OrderBase{
+            Action:    "buy",
+            BankOrder: true,
+            HashTag:   "Tag1",
+            Quantity:  1.00,
+        },
+        OrderSystem: models.OrderSystem{
+            UUID:     "FAKE-UUID",
+            UserID:   s.User.Email,
+            Complete: true,
+        },
+    }
+    order.Put(req)
+
+    rec := s.Do(req)
+
+    s.Equal(http.StatusBadRequest, rec.Code)
 }
 
 /* Kickoff Test Suite */

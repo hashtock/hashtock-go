@@ -32,7 +32,10 @@ func SerializeResponse(rw http.ResponseWriter, req *http.Request, obj interface{
 
     rw.Header().Set("Content-Type", accept)
     rw.WriteHeader(status_code)
-    rw.Write(data)
+
+    if obj != nil || status_code != http.StatusNoContent {
+        rw.Write(data)
+    }
     return
 }
 
