@@ -17,7 +17,7 @@ func (o *OrderService) Name() string {
 }
 
 func (o *OrderService) EndPoints() (endpoints []*api.EndPoint) {
-    orders := api.NewEndPoint("/", "GET", "orders", nil)
+    orders := api.NewEndPoint("/", "GET", "orders", ActiveOrder)
     new_order := api.NewEndPoint("/", "POST", "new_order", NewOrder)
     order_details := api.NewEndPoint("/{uuid}/", "GET", "order_details", OrderDetails)
     cancel_order := api.NewEndPoint("/{uuid}/", "DELETE", "cancel_order", CancelOrder)
@@ -29,6 +29,17 @@ func (o *OrderService) EndPoints() (endpoints []*api.EndPoint) {
         cancel_order,
     }
     return
+}
+
+func ActiveOrder(rw http.ResponseWriter, req *http.Request) {
+    orders, err := models.GetActiveOrders(req)
+
+    if err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    http_utils.SerializeResponse(rw, req, orders, http.StatusOK)
 }
 
 func NewOrder(rw http.ResponseWriter, req *http.Request) {

@@ -30,7 +30,7 @@ URI prefix: `/api/`
 | URI             | Method | Description                           | Done? |
 |-----------------|--------|---------------------------------------|-------|
 | /               | GET    | Main entry points to resouces         |  [x]  |
-| /order/         | GET    | List of current orders                |  [ ]  |
+| /order/         | GET    | List of current orders                |  [x]  |
 | /order/         | POST   | Add new order                         |  [x]  |
 | /order/{uuid}/  | GET    | Order details                         |  [x]  |
 | /order/{uuid}/  | DELETE | Cancel the order                      |  [x]  |

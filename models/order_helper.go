@@ -95,3 +95,25 @@ func CancelOrder(req *http.Request, order_uuid string) (err error) {
 
     return
 }
+
+func allUserOrders(req *http.Request) (query *datastore.Query, err error) {
+    var profile *Profile
+
+    if profile, err = GetProfile(req); err != nil {
+        return
+    }
+
+    query = datastore.NewQuery(orderKind).Filter("UserID =", profile.UserID)
+
+    return
+}
+
+func GetActiveOrders(req *http.Request) (orders []Order, err error) {
+    var query *datastore.Query
+    query, err = allUserOrders(req)
+
+    ctx := appengine.NewContext(req)
+    _, err = query.Filter("Complete =", false).GetAll(ctx, &orders)
+
+    return
+}

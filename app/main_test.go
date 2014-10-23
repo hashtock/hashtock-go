@@ -329,6 +329,81 @@ func (s *FunctionalTestSuite) TestCancelCompetedOrder() {
     s.Equal(http.StatusBadRequest, rec.Code)
 }
 
+func (s *FunctionalTestSuite) TestCurrentOrders() {
+    req := s.NewJsonRequest("GET", "/api/order/", nil, s.User)
+
+    tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
+    tag.Put(req)
+
+    base_order := models.OrderBase{
+        Action:    "buy",
+        BankOrder: true,
+        HashTag:   "Tag1",
+        Quantity:  1.00,
+    }
+
+    order_1 := models.Order{
+        OrderBase: base_order,
+        OrderSystem: models.OrderSystem{
+            UUID:     "id1",
+            UserID:   s.User.Email,
+            Complete: false,
+        },
+    }
+    order_1.Put(req)
+
+    order_1.UUID = "id2"
+    order_1.Put(req)
+
+    order_2 := models.Order{
+        OrderBase: base_order,
+        OrderSystem: models.OrderSystem{
+            UUID:     "id3",
+            UserID:   s.User.Email,
+            Complete: true,
+        },
+    }
+    order_2.Put(req)
+
+    order_3 := models.Order{
+        OrderBase: base_order,
+        OrderSystem: models.OrderSystem{
+            UUID:     "id4",
+            UserID:   "some user",
+            Complete: false,
+        },
+    }
+    order_3.Put(req)
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToListOfStringMap(rec)
+
+    expected := gaetestsuite.JsonList{
+        gaetestsuite.Json{
+            "action":     "buy",
+            "hashtag":    "Tag1",
+            "quantity":   1.00,
+            "user_id":    s.User.Email,
+            "bank_order": true,
+            "complete":   false,
+            "uuid":       "id1",
+        },
+        gaetestsuite.Json{
+            "action":     "buy",
+            "hashtag":    "Tag1",
+            "quantity":   1.00,
+            "user_id":    s.User.Email,
+            "bank_order": true,
+            "complete":   false,
+            "uuid":       "id2",
+        },
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Len(json_body, 2)
+    s.Equal(expected, json_body)
+}
+
 /* Kickoff Test Suite */
 
 func TestFunctionalTestSuite(t *testing.T) {
