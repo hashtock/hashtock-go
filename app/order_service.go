@@ -17,22 +17,35 @@ func (o *OrderService) Name() string {
 }
 
 func (o *OrderService) EndPoints() (endpoints []*api.EndPoint) {
-    orders := api.NewEndPoint("/", "GET", "orders", ActiveOrder)
+    orders := api.NewEndPoint("/", "GET", "orders", ActiveOrders)
     new_order := api.NewEndPoint("/", "POST", "new_order", NewOrder)
+    completed_orders := api.NewEndPoint("/history/", "GET", "completed_orders", CompletedOrder)
     order_details := api.NewEndPoint("/{uuid}/", "GET", "order_details", OrderDetails)
     cancel_order := api.NewEndPoint("/{uuid}/", "DELETE", "cancel_order", CancelOrder)
 
     endpoints = []*api.EndPoint{
         orders,
         new_order,
+        completed_orders,
         order_details,
         cancel_order,
     }
     return
 }
 
-func ActiveOrder(rw http.ResponseWriter, req *http.Request) {
+func ActiveOrders(rw http.ResponseWriter, req *http.Request) {
     orders, err := models.GetActiveOrders(req)
+
+    if err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    http_utils.SerializeResponse(rw, req, orders, http.StatusOK)
+}
+
+func CompletedOrder(rw http.ResponseWriter, req *http.Request) {
+    orders, err := models.GetCompletedOrders(req)
 
     if err != nil {
         http_utils.SerializeErrorResponse(rw, req, err)

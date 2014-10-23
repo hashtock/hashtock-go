@@ -108,12 +108,20 @@ func allUserOrders(req *http.Request) (query *datastore.Query, err error) {
     return
 }
 
-func GetActiveOrders(req *http.Request) (orders []Order, err error) {
+func orderByCompletness(req *http.Request, complete bool) (orders []Order, err error) {
     var query *datastore.Query
     query, err = allUserOrders(req)
 
     ctx := appengine.NewContext(req)
-    _, err = query.Filter("Complete =", false).GetAll(ctx, &orders)
+    _, err = query.Filter("Complete =", complete).GetAll(ctx, &orders)
 
     return
+}
+
+func GetActiveOrders(req *http.Request) (orders []Order, err error) {
+    return orderByCompletness(req, false)
+}
+
+func GetCompletedOrders(req *http.Request) (orders []Order, err error) {
+    return orderByCompletness(req, true)
 }

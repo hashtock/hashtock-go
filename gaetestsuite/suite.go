@@ -172,7 +172,7 @@ func (g *GAETestSuite) ExecuteJsonRequest(method, urlStr string, body io.Reader,
 func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) Json {
     json_map := Json{}
     if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
-        g.T().Fatalf("Could not unmarshal: %s", rec.Body.String())
+        g.T().Fatalf("Could not unmarshal map: %s", rec.Body.String())
     }
     return json_map
 }
@@ -180,7 +180,7 @@ func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) J
 func (g *GAETestSuite) JsonResponceToListOfStringMap(rec *httptest.ResponseRecorder) JsonList {
     json_map := JsonList{}
     if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
-        g.T().Fatalf("Could not unmarshal: %s", rec.Body.String())
+        g.T().Fatalf("Could not unmarshal list: %s", rec.Body.String())
     }
     return json_map
 }
