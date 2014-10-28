@@ -38,6 +38,6 @@ URI prefix: `/api/`
 | /tag/           | GET    | List of all tags with bank values     |  [x]  |
 | /tag/           | PUT    | Add new tag (admin)                   |  [x]  |
 | /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |
-| /tag/{hash}/    | POST   | Update info about the tag (admin)     |  [ ]  |
+| /tag/{hash}/    | POST   | Update tag Value (admin)              |  [x]  |
 | /user/          | GET    | High level user details               |  [x]  |
 | /user/tags/     | GET    | List of users shares of tags          |  [x]  |

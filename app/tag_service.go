@@ -19,15 +19,15 @@ func (h *HashTagService) Name() string {
 
 func (h *HashTagService) EndPoints() (endpoints []*api.EndPoint) {
     tags := api.NewEndPoint("/", "GET", "tags", ListOfAllHashTags)
-    new_tag := api.NewEndPoint("/", "PUT", "new_tag", NewHashTag) // Add new tag (admin)
+    new_tag := api.NewEndPoint("/", "PUT", "new_tag", NewHashTag)
     tag_info := api.NewEndPoint("/{tag}/", "GET", "tag_info", TagInfo)
-    update_tag := api.NewEndPoint("/{tag}/", "POST", "update_tag", nil) // Update info about the tag (admin)
+    set_tag_value := api.NewEndPoint("/{tag}/", "POST", "set_tag_value", SetTagValue)
 
     endpoints = []*api.EndPoint{
         tags,
         new_tag,
         tag_info,
-        update_tag,
+        set_tag_value,
     }
     return
 }
@@ -50,16 +50,15 @@ func TagInfo(rw http.ResponseWriter, req *http.Request) {
     hash_tag_name := vars["tag"]
 
     tag, err := models.GetHashTag(req, hash_tag_name)
-
     if err != nil {
         http_utils.SerializeErrorResponse(rw, req, err)
-
         return
     }
 
     http_utils.SerializeResponse(rw, req, tag, http.StatusOK)
 }
 
+// Add new tag (admin)
 func NewHashTag(rw http.ResponseWriter, req *http.Request) {
     tag := models.HashTag{}
     if err := http_utils.DeSerializeRequest(*req, &tag); err != nil {
@@ -74,4 +73,30 @@ func NewHashTag(rw http.ResponseWriter, req *http.Request) {
     }
 
     http_utils.SerializeResponse(rw, req, new_tag, http.StatusCreated)
+}
+
+// Set tag value (admin)
+func SetTagValue(rw http.ResponseWriter, req *http.Request) {
+    vars := mux.Vars(req)
+    hash_tag_name := vars["tag"]
+
+    updated_tag := models.HashTag{}
+    if err := http_utils.DeSerializeRequest(*req, &updated_tag); err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    if updated_tag.HashTag != "" && hash_tag_name != updated_tag.HashTag {
+        err := http_utils.NewBadRequestError("hashtag value has to be empty or correct")
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    tag, err := models.UpdateHashTagValue(req, hash_tag_name, updated_tag.Value)
+    if err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    http_utils.SerializeResponse(rw, req, tag, http.StatusOK)
 }

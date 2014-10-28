@@ -56,19 +56,19 @@ func hashTagExists(req *http.Request, hash_tag_name string) (ok bool, err error)
     return count > 0 || err != nil, err
 }
 
-func CanUserCreateHashTag(req *http.Request) (err error) {
+func CanUserCreateUpdateHashTag(req *http.Request) (err error) {
     ctx := appengine.NewContext(req)
 
     if !user.IsAdmin(ctx) {
-        msg_404 := http.StatusText(http.StatusNotFound)
-        return http_utils.NewNotFoundError(msg_404)
+        msg_403 := http.StatusText(http.StatusForbidden)
+        return http_utils.NewForbiddenError(msg_403)
     }
 
     return nil
 }
 
 func AddHashTag(req *http.Request, tag HashTag) (new_tag HashTag, err error) {
-    if err = CanUserCreateHashTag(req); err != nil {
+    if err = CanUserCreateUpdateHashTag(req); err != nil {
         return
     }
 
@@ -86,4 +86,24 @@ func AddHashTag(req *http.Request, tag HashTag) (new_tag HashTag, err error) {
     }
 
     return tag, err
+}
+
+func UpdateHashTagValue(req *http.Request, hash_tag_name string, new_value float64) (tag *HashTag, err error) {
+    if err = CanUserCreateUpdateHashTag(req); err != nil {
+        return
+    }
+
+    if new_value <= 0 {
+        err = http_utils.NewBadRequestError("Value has to be positive")
+        return
+    }
+
+    tag, err = GetHashTag(req, hash_tag_name)
+    if err != nil {
+        return
+    }
+
+    tag.Value = new_value
+    err = tag.Put(req)
+    return
 }

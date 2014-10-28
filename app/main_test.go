@@ -201,6 +201,151 @@ func (s *FunctionalTestSuite) TestAdmingAddingExistingTag() {
     s.Equal(expected, json_body)
 }
 
+func (s *FunctionalTestSuite) TestAdmingUpdateTagValue() {
+    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+    existing_tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  50.0,
+    }
+    existing_tag.Put(tmp_req)
+
+    update_tag_value := models.HashTag{
+        Value: 2,
+    }
+
+    body := s.ToJsonBody(update_tag_value)
+    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "hashtag": "TestTag",
+        "value":   2,
+        "in_bank": 50.0,
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestAdmingUpdateTagValueIgnoreBankValue() {
+    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+    existing_tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  50.0,
+    }
+    existing_tag.Put(tmp_req)
+
+    update_tag_value := models.HashTag{
+        Value:  2,
+        InBank: 100.0, // This will be just ignored
+    }
+
+    body := s.ToJsonBody(update_tag_value)
+    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "hashtag": "TestTag",
+        "value":   2,
+        "in_bank": 50.0,
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestAdmingUpdateTagValueInvalidHashTag() {
+    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+    existing_tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  50.0,
+    }
+    existing_tag.Put(tmp_req)
+
+    update_tag_value := models.HashTag{
+        HashTag: "SomethingStupid",
+        Value:   2,
+    }
+
+    body := s.ToJsonBody(update_tag_value)
+    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  400,
+        "error": "hashtag value has to be empty or correct",
+    }
+    tag, _ := models.GetHashTag(req, "TestTag")
+
+    s.Equal(http.StatusBadRequest, rec.Code)
+    s.Equal(expected, json_body)
+    s.Equal(existing_tag, *tag) // No change!!
+}
+
+func (s *FunctionalTestSuite) TestAdmingUpdateTagInvalidValue() {
+    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+    existing_tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  50.0,
+    }
+    existing_tag.Put(tmp_req)
+
+    update_tag_value := models.HashTag{
+        Value: 0,
+    }
+
+    body := s.ToJsonBody(update_tag_value)
+    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  400,
+        "error": "Value has to be positive",
+    }
+    tag, _ := models.GetHashTag(req, "TestTag")
+
+    s.Equal(http.StatusBadRequest, rec.Code)
+    s.Equal(expected, json_body)
+    s.Equal(existing_tag, *tag) // No change!!
+}
+
+func (s *FunctionalTestSuite) TestRegularUserUpdateTagValue() {
+    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+    existing_tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  50.0,
+    }
+    existing_tag.Put(tmp_req)
+
+    update_tag_value := models.HashTag{
+        Value: 2,
+    }
+
+    body := s.ToJsonBody(update_tag_value)
+    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.User)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  http.StatusForbidden,
+        "error": "Forbidden",
+    }
+    tag, _ := models.GetHashTag(req, "TestTag")
+
+    s.Equal(http.StatusForbidden, rec.Code)
+    s.Equal(expected, json_body)
+    s.Equal(existing_tag, *tag) // No change!!
+}
+
 func (s *FunctionalTestSuite) TestRegularUserAddingTag() {
     tag := models.HashTag{
         HashTag: "TestTag",
@@ -213,11 +358,11 @@ func (s *FunctionalTestSuite) TestRegularUserAddingTag() {
     json_body := s.JsonResponceToStringMap(rec)
 
     expected := gaetestsuite.Json{
-        "code":  http.StatusNotFound,
-        "error": "Not Found",
+        "code":  http.StatusForbidden,
+        "error": "Forbidden",
     }
 
-    s.Equal(http.StatusNotFound, rec.Code)
+    s.Equal(http.StatusForbidden, rec.Code)
     s.Equal(expected, json_body)
 }
 

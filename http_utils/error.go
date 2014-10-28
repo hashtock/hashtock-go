@@ -36,6 +36,13 @@ func NewNotFoundError(message string) HttpError {
     }
 }
 
+func NewForbiddenError(message string) HttpError {
+    return HttpError{
+        Code:    http.StatusForbidden,
+        Message: message,
+    }
+}
+
 func NewBadRequestError(message string) HttpError {
     return HttpError{
         Code:    http.StatusBadRequest,
