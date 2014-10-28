@@ -65,7 +65,7 @@ func (o *OrderBase) IsValid(req *http.Request) (err error) {
         fields = append(fields, "action")
     }
 
-    if !hashTagExists(req, o.HashTag) {
+    if exists, tmp_err := hashTagExists(req, o.HashTag); !exists || tmp_err != nil {
         fields = append(fields, "hashtag")
     }
 

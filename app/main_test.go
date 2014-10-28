@@ -1,9 +1,10 @@
-package main
+package main_test
 
 import (
     "net/http"
     "testing"
 
+    _ "github.com/hashtock/hashtock-go/app"
     "github.com/hashtock/hashtock-go/gaetestsuite"
     "github.com/hashtock/hashtock-go/models"
 )
@@ -123,6 +124,103 @@ func (s *FunctionalTestSuite) TestGetUnExistingTag() {
     s.Equal(expected, json_body) // This is not very robust for error msg
 }
 
+func (s *FunctionalTestSuite) TestAdmingAddingTag() {
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   10.5,
+    }
+
+    body := s.ToJsonBody(tag)
+    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "hashtag": "TestTag",
+        "value":   10.5,
+        "in_bank": 100.0,
+    }
+
+    s.Equal(http.StatusCreated, rec.Code)
+    s.Equal(expected, json_body)
+
+    tag.InBank = 100
+    new_tag, err := models.GetHashTag(req, "TestTag")
+    s.NoError(err)
+    s.Equal(tag, *new_tag)
+}
+
+func (s *FunctionalTestSuite) TestAdmingAddingTagWithInBankValue() {
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   10.5,
+        InBank:  1.0,
+    }
+
+    body := s.ToJsonBody(tag)
+    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "hashtag": "TestTag",
+        "value":   10.5,
+        "in_bank": 100.0,
+    }
+
+    s.Equal(http.StatusCreated, rec.Code)
+    s.Equal(expected, json_body)
+
+    new_tag, err := models.GetHashTag(req, "TestTag")
+    s.NoError(err)
+    s.Equal(100.0, new_tag.InBank)
+}
+
+func (s *FunctionalTestSuite) TestAdmingAddingExistingTag() {
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   10.5,
+        InBank:  100.0,
+    }
+
+    body := s.ToJsonBody(tag)
+    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    if err := tag.Put(req); err != nil {
+        s.T().Fatalf(err.Error())
+    }
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  400,
+        "error": "Tag alread exists",
+    }
+
+    s.Equal(http.StatusBadRequest, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *FunctionalTestSuite) TestRegularUserAddingTag() {
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   10.5,
+    }
+
+    body := s.ToJsonBody(tag)
+    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.User)
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  http.StatusNotFound,
+        "error": "Not Found",
+    }
+
+    s.Equal(http.StatusNotFound, rec.Code)
+    s.Equal(expected, json_body)
+}
+
 func (s *FunctionalTestSuite) TestGetUsersTags() {
     req := s.NewJsonRequest("GET", "/api/user/tags/", nil, s.User)
 
@@ -170,8 +268,13 @@ func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
 
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
-    uuid := json_body["uuid"]
+    s.Equal(http.StatusCreated, rec.Code)
+    if http.StatusCreated != rec.Code {
+        // There is no point of going further!
+        s.T().Fatalf("Code incorrect. Body: %v", rec.Body.String())
+    }
 
+    uuid := json_body["uuid"]
     expected := gaetestsuite.Json{
         "action":     "buy",
         "hashtag":    "Tag1",
@@ -181,8 +284,9 @@ func (s *FunctionalTestSuite) TestPlaceTransactionOrderWithBank() {
         "complete":   false,
         "uuid":       uuid.(string),
     }
-
-    s.Equal(http.StatusCreated, rec.Code)
+    order_in_db, err := models.GetOrder(req, uuid.(string))
+    s.NoError(err)
+    s.NotNil(order_in_db)
     s.Equal(expected, json_body)
 }
 

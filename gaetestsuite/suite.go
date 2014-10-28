@@ -132,7 +132,7 @@ func (g *GAETestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *
     req = g.NewRequest(method, urlStr, body)
 
     req.Header.Add("Accept", "application/json")
-    if method == "POST" {
+    if method == "POST" || method == "PUT" {
         req.Header.Add("content-type", "application/json")
     }
 
@@ -171,6 +171,10 @@ func (g *GAETestSuite) ExecuteJsonRequest(method, urlStr string, body io.Reader,
 
 func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) Json {
     json_map := Json{}
+    if rec.Body.Len() == 0 {
+        g.T().Fatalf("Response is empty!")
+    }
+
     if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
         g.T().Fatalf("Could not unmarshal map: %s", rec.Body.String())
     }
@@ -179,6 +183,10 @@ func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) J
 
 func (g *GAETestSuite) JsonResponceToListOfStringMap(rec *httptest.ResponseRecorder) JsonList {
     json_map := JsonList{}
+    if rec.Body.Len() == 0 {
+        g.T().Fatalf("Response is empty!")
+    }
+
     if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
         g.T().Fatalf("Could not unmarshal list: %s", rec.Body.String())
     }

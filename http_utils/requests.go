@@ -2,7 +2,7 @@ package http_utils
 
 import (
     "encoding/json"
-    "errors"
+    // "errors"
     "fmt"
     "io/ioutil"
     "net/http"
@@ -20,9 +20,9 @@ func DeSerializeRequest(req http.Request, obj interface{}) (err error) {
     case "application/json":
         err = json.Unmarshal(body, &obj)
     case "":
-        err = errors.New("Content type not specified")
+        err = NewBadRequestError("Content type not specified")
     default:
-        err = errors.New(fmt.Sprintf("Unsupported content type: %s", content_type))
+        err = NewBadRequestError(fmt.Sprintf("Unsupported content type: %s", content_type))
     }
     return
 }

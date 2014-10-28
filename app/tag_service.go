@@ -19,11 +19,13 @@ func (h *HashTagService) Name() string {
 
 func (h *HashTagService) EndPoints() (endpoints []*api.EndPoint) {
     tags := api.NewEndPoint("/", "GET", "tags", ListOfAllHashTags)
+    new_tag := api.NewEndPoint("/", "PUT", "new_tag", NewHashTag) // Add new tag (admin)
     tag_info := api.NewEndPoint("/{tag}/", "GET", "tag_info", TagInfo)
     update_tag := api.NewEndPoint("/{tag}/", "POST", "update_tag", nil) // Update info about the tag (admin)
 
     endpoints = []*api.EndPoint{
         tags,
+        new_tag,
         tag_info,
         update_tag,
     }
@@ -56,4 +58,20 @@ func TagInfo(rw http.ResponseWriter, req *http.Request) {
     }
 
     http_utils.SerializeResponse(rw, req, tag, http.StatusOK)
+}
+
+func NewHashTag(rw http.ResponseWriter, req *http.Request) {
+    tag := models.HashTag{}
+    if err := http_utils.DeSerializeRequest(*req, &tag); err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    new_tag, err := models.AddHashTag(req, tag)
+    if err != nil {
+        http_utils.SerializeErrorResponse(rw, req, err)
+        return
+    }
+
+    http_utils.SerializeResponse(rw, req, new_tag, http.StatusCreated)
 }
