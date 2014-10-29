@@ -22,3 +22,22 @@
 
 **Admin**:
 - Add new tag to bank
+
+## API
+
+URI prefix: `/api/`
+
+| URI             | Method | Description                           | Done? |
+|-----------------|--------|---------------------------------------|-------|
+| /               | GET    | Main entry points to resouces         |  [x]  |
+| /order/         | GET    | List of current orders                |  [x]  |
+| /order/         | POST   | Add new order                         |  [x]  |
+| /order/{uuid}/  | GET    | Order details                         |  [x]  |
+| /order/{uuid}/  | DELETE | Cancel the order                      |  [x]  |
+| /order/history/ | GET    | List of all orders                    |  [x]  |
+| /tag/           | GET    | List of all tags with bank values     |  [x]  |
+| /tag/           | POST   | Add new tag (admin)                   |  [x]  |
+| /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |
+| /tag/{hash}/    | PUT    | Update tag Value (admin)              |  [x]  |
+| /user/          | GET    | High level user details               |  [x]  |
+| /user/tags/     | GET    | List of users shares of tags          |  [x]  |
