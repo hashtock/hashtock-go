@@ -5,4 +5,5 @@ if [[ $1 == '-v' ]]; then
     v="-test.v"
 fi
 
-cd app && goapp test $v
+goapp test $v $(ls -d ./*/)
+# cd app && goapp test $v
