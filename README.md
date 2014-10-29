@@ -36,8 +36,8 @@ URI prefix: `/api/`
 | /order/{uuid}/  | DELETE | Cancel the order                      |  [x]  |
 | /order/history/ | GET    | List of all orders                    |  [x]  |
 | /tag/           | GET    | List of all tags with bank values     |  [x]  |
-| /tag/           | PUT    | Add new tag (admin)                   |  [x]  |
+| /tag/           | POST   | Add new tag (admin)                   |  [x]  |
 | /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |
-| /tag/{hash}/    | POST   | Update tag Value (admin)              |  [x]  |
+| /tag/{hash}/    | PUT    | Update tag Value (admin)              |  [x]  |
 | /user/          | GET    | High level user details               |  [x]  |
 | /user/tags/     | GET    | List of users shares of tags          |  [x]  |

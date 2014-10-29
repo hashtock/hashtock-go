@@ -131,7 +131,7 @@ func (s *FunctionalTestSuite) TestAdmingAddingTag() {
     }
 
     body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -158,7 +158,7 @@ func (s *FunctionalTestSuite) TestAdmingAddingTagWithInBankValue() {
     }
 
     body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -176,7 +176,7 @@ func (s *FunctionalTestSuite) TestAdmingAddingTagWithInBankValue() {
     s.Equal(100.0, new_tag.InBank)
 }
 
-func (s *FunctionalTestSuite) TestAdmingAddingExistingTag() {
+func (s *FunctionalTestSuite) TestAdminAddingExistingTag() {
     tag := models.HashTag{
         HashTag: "TestTag",
         Value:   10.5,
@@ -184,7 +184,7 @@ func (s *FunctionalTestSuite) TestAdmingAddingExistingTag() {
     }
 
     body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.AdminUser)
+    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
     if err := tag.Put(req); err != nil {
         s.T().Fatalf(err.Error())
     }
@@ -215,7 +215,7 @@ func (s *FunctionalTestSuite) TestAdmingUpdateTagValue() {
     }
 
     body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -244,7 +244,7 @@ func (s *FunctionalTestSuite) TestAdmingUpdateTagValueIgnoreBankValue() {
     }
 
     body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -273,7 +273,7 @@ func (s *FunctionalTestSuite) TestAdmingUpdateTagValueInvalidHashTag() {
     }
 
     body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -302,7 +302,7 @@ func (s *FunctionalTestSuite) TestAdmingUpdateTagInvalidValue() {
     }
 
     body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.AdminUser)
+    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -331,7 +331,7 @@ func (s *FunctionalTestSuite) TestRegularUserUpdateTagValue() {
     }
 
     body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("POST", "/api/tag/TestTag/", body, s.User)
+    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.User)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -353,7 +353,7 @@ func (s *FunctionalTestSuite) TestRegularUserAddingTag() {
     }
 
     body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("PUT", "/api/tag/", body, s.User)
+    req := s.NewJsonRequest("POST", "/api/tag/", body, s.User)
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
@@ -496,7 +496,7 @@ func (s *FunctionalTestSuite) TestGetOrderDetails() {
     s.Equal(expected, json_body)
 }
 
-func (s *FunctionalTestSuite) TestGetOrderDiffenreUser() {
+func (s *FunctionalTestSuite) TestGetOrderDifferentUser() {
     req := s.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, s.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}

@@ -19,9 +19,9 @@ func (h *HashTagService) Name() string {
 
 func (h *HashTagService) EndPoints() (endpoints []*api.EndPoint) {
     tags := api.NewEndPoint("/", "GET", "tags", ListOfAllHashTags)
-    new_tag := api.NewEndPoint("/", "PUT", "new_tag", NewHashTag)
+    new_tag := api.NewEndPoint("/", "POST", "new_tag", NewHashTag)
     tag_info := api.NewEndPoint("/{tag}/", "GET", "tag_info", TagInfo)
-    set_tag_value := api.NewEndPoint("/{tag}/", "POST", "set_tag_value", SetTagValue)
+    set_tag_value := api.NewEndPoint("/{tag}/", "PUT", "set_tag_value", SetTagValue)
 
     endpoints = []*api.EndPoint{
         tags,
