@@ -51,9 +51,18 @@ func GetProfile(req *http.Request) (profile *Profile, err error) {
     profile = new(Profile)
     if datastore.Get(ctx, key, profile) == datastore.ErrNoSuchEntity {
         profile = newUserProfile(u)
-        _, err = datastore.Put(ctx, key, profile)
+        err = profile.Put(req)
     }
 
     context.Set(req, reqProfile, profile)
+    return
+}
+
+func getProfileForUserId(req *http.Request, userID string) (profile *Profile, err error) {
+    ctx := appengine.NewContext(req)
+    key := profileKey(ctx, userID)
+
+    profile = new(Profile)
+    err = datastore.Get(ctx, key, profile)
     return
 }

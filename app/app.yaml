@@ -4,6 +4,10 @@ runtime: go
 api_version: go1
 
 handlers:
+- url: /api/_cron/.*
+  script: _go_app
+  login: admin
+
 - url: /api/.*
   script: _go_app
   login: required
@@ -11,3 +15,8 @@ handlers:
 - url: /admin/.*
   script: _go_app
   login: admin
+
+cron:
+- description: Bank orders
+  url: /api/_cron/bank-orders/
+  schedule: every 5 minutes

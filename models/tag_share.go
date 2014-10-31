@@ -1,7 +1,6 @@
 package models
 
 import (
-    "fmt"
     "net/http"
 
     "appengine"
@@ -19,8 +18,7 @@ type TagShare struct {
 }
 
 func (t *TagShare) key(ctx appengine.Context) (key *datastore.Key) {
-    uniq_id := fmt.Sprintf("%s-%s", t.HashTag, t.UserID)
-    return tagShareKey(ctx, uniq_id)
+    return tagShareKey(ctx, t.HashTag, t.UserID)
 }
 
 func (t *TagShare) Put(req *http.Request) (err error) {

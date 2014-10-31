@@ -88,8 +88,12 @@ func (g *GAETestSuite) ClearDB() {
     }
 }
 
+func (g *GAETestSuite) DummyRequest(u *user.User) *http.Request {
+    return g.NewUserRequest("GET", "/", nil, u)
+}
+
 func (g *GAETestSuite) NewContext() appengine.Context {
-    req := g.NewRequest("GET", "/", nil)
+    req := g.DummyRequest(nil)
     return appengine.NewContext(req)
 }
 
@@ -128,18 +132,24 @@ func (g *GAETestSuite) NewRequest(method, urlStr string, body io.Reader) (req *h
     return
 }
 
-func (g *GAETestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *user.User) (req *http.Request) {
+func (g *GAETestSuite) NewUserRequest(method, urlStr string, body io.Reader, u *user.User) (req *http.Request) {
     req = g.NewRequest(method, urlStr, body)
-
-    req.Header.Add("Accept", "application/json")
-    if method == "POST" || method == "PUT" {
-        req.Header.Add("content-type", "application/json")
-    }
 
     if u != nil {
         aetest.Login(u, req)
     } else {
         aetest.Logout(req)
+    }
+
+    return
+}
+
+func (g *GAETestSuite) NewJsonRequest(method, urlStr string, body io.Reader, u *user.User) (req *http.Request) {
+    req = g.NewUserRequest(method, urlStr, body, u)
+
+    req.Header.Add("Accept", "application/json")
+    if method == "POST" || method == "PUT" {
+        req.Header.Add("content-type", "application/json")
     }
 
     return

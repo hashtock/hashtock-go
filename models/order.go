@@ -94,3 +94,12 @@ func (o *Order) canAccess(req *http.Request) (ok bool, err error) {
 func (o *Order) isCancellable() bool {
     return o.Complete == false
 }
+
+func (o *Order) isBuy() bool {
+    return o.Action == actionBuy
+}
+
+func (o *Order) markAsComplete(req *http.Request) (err error) {
+    o.Complete = true
+    return o.Put(req)
+}
