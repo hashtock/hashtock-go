@@ -1,5 +1,42 @@
 # hashtock-go
 
+## Install
+```
+# Install go_appengine_sdk
+cd
+wget https://storage.googleapis.com/appengine-sdks/featured/go_appengine_sdk_linux_amd64-1.9.15.zip
+unzip go_appengine_sdk_linux_amd64-1.9.15.zip
+rm go_appengine_sdk_linux_amd64-1.9.15.zip
+export PATH=~/go_appengine/:$PATH
+
+# Clone hashtock-go
+git clone git@github.com:hashtock/hashtock-go.git ~/go_packages/src/github.com/hashtock/hashtock-go
+
+# Install requirements
+export GOPATH=~/go_packages
+goapp get github.com/gorilla/mux
+goapp get github.com/codegangsta/negroni
+goapp get code.google.com/p/go-uuid/uuid
+goapp get github.com/gorilla/context
+goapp get github.com/stretchr/testify/suite
+```
+
+## Serve
+```
+cd ~/go_packages/src/github.com/hashtock/hashtock-go
+./serve.sh
+```
+
+* Appengine admin is running at http://localhost:8000
+* App running at http://localhost:8080/api/
+
+## Run tests
+
+```
+cd ~/go_packages/src/github.com/hashtock/hashtock-go
+./run_tests.sh
+```
+
 ## Functionality
 
 **Bank**:
