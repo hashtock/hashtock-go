@@ -56,6 +56,21 @@ func hashTagExists(req *http.Request, hash_tag_name string) (ok bool, err error)
     return count > 0 || err != nil, err
 }
 
+func hashTagExistsOrError(req *http.Request, hash_tag_name string) (err error) {
+    var exists bool
+
+    exists, err = hashTagExists(req, hash_tag_name)
+    if err != nil {
+        return
+    }
+
+    if !exists {
+        msg := fmt.Sprintf("Tag '%v' does not exist", hash_tag_name)
+        return http_utils.NewNotFoundError(msg)
+    }
+    return
+}
+
 func CanUserCreateUpdateHashTag(req *http.Request) (err error) {
     ctx := appengine.NewContext(req)
 

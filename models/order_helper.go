@@ -1,6 +1,7 @@
 package models
 
 import (
+    "errors"
     "fmt"
     "net/http"
 
@@ -96,32 +97,125 @@ func CancelOrder(req *http.Request, order_uuid string) (err error) {
     return
 }
 
-func allUserOrders(req *http.Request) (query *datastore.Query, err error) {
+func allUserOrdersQuery(req *http.Request) (query *datastore.Query, err error) {
     var profile *Profile
 
     if profile, err = GetProfile(req); err != nil {
         return
     }
 
-    query = datastore.NewQuery(orderKind).Filter("UserID =", profile.UserID)
+    query = allOrdersQuery().Filter("UserID =", profile.UserID)
 
     return
 }
 
-func orderByCompletness(req *http.Request, complete bool) (orders []Order, err error) {
-    var query *datastore.Query
-    query, err = allUserOrders(req)
+func allOrdersQuery() (query *datastore.Query) {
+    return datastore.NewQuery(orderKind)
+}
 
+func orderByCompletnessQuery(query *datastore.Query, complete bool) *datastore.Query {
+    return query.Filter("Complete =", complete)
+}
+
+func executeOrderQuery(req *http.Request, query *datastore.Query) (orders []Order, err error) {
     ctx := appengine.NewContext(req)
-    _, err = query.Filter("Complete =", complete).GetAll(ctx, &orders)
+    _, err = query.GetAll(ctx, &orders)
 
     return
 }
 
-func GetActiveOrders(req *http.Request) (orders []Order, err error) {
-    return orderByCompletness(req, false)
+func GetActiveUserOrders(req *http.Request) (orders []Order, err error) {
+    var query *datastore.Query
+    query, err = allUserOrdersQuery(req)
+    if err != nil {
+        return
+    }
+
+    query = orderByCompletnessQuery(query, false)
+
+    return executeOrderQuery(req, query)
 }
 
-func GetCompletedOrders(req *http.Request) (orders []Order, err error) {
-    return orderByCompletness(req, true)
+func GetCompletedUserOrders(req *http.Request) (orders []Order, err error) {
+    var query *datastore.Query
+    query, err = allUserOrdersQuery(req)
+    if err != nil {
+        return
+    }
+
+    query = orderByCompletnessQuery(query, true)
+
+    return executeOrderQuery(req, query)
+}
+
+func GetAllActiveBankOrders(req *http.Request) (orders []Order, err error) {
+    query := allOrdersQuery()
+    query = query.Filter("Complete =", false)
+    query = query.Filter("BankOrder =", true)
+
+    return executeOrderQuery(req, query)
+}
+
+func ExecuteBankOrder(req *http.Request, order Order) (err error) {
+    var (
+        profile  *Profile
+        hashTag  *HashTag
+        tagShare *TagShare
+    )
+
+    // It's time to blow up if asked to execute non bank order here
+    if !order.BankOrder {
+        panic(errors.New("execution of non bank order"))
+    }
+
+    if hashTag, err = GetHashTag(req, order.HashTag); err != nil {
+        return
+    }
+
+    if profile, err = getProfileForUserId(req, order.UserID); err != nil {
+        return
+    }
+
+    if tagShare, err = getOrCreateTagShare(req, profile, order.HashTag); err != nil {
+        return
+    }
+
+    transaction_value := hashTag.Value * order.Quantity
+
+    if order.isBuy() {
+        if profile.Founds < transaction_value {
+            msg := fmt.Sprintf("User %v does not have enough founds to complete %v", profile, order)
+            return http_utils.NewBadRequestError(msg)
+        }
+
+        if hashTag.InBank < order.Quantity {
+            msg := fmt.Sprintf("Bank does not have enough shares to complete %v", order)
+            return http_utils.NewBadRequestError(msg)
+        }
+
+        profile.Founds -= transaction_value
+        tagShare.Quantity += order.Quantity
+        hashTag.InBank -= order.Quantity
+
+        profile.Put(req)
+        tagShare.Put(req)
+        hashTag.Put(req)
+    } else {
+        if tagShare.Quantity < order.Quantity {
+            msg := fmt.Sprintf("User %v does not have enough shares to complete %v", profile, order)
+            return http_utils.NewBadRequestError(msg)
+        }
+
+        profile.Founds += transaction_value
+        tagShare.Quantity -= order.Quantity
+        hashTag.InBank += order.Quantity
+
+        profile.Put(req)
+        tagShare.Put(req)
+        hashTag.Put(req)
+    }
+
+    order.markAsComplete(req)
+
+    return
 }

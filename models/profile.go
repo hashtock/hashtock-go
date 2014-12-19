@@ -1,8 +1,11 @@
 package models
 
 import (
+    "net/http"
+
     "appengine"
     "appengine/datastore"
+    "github.com/gorilla/context"
 )
 
 const (
@@ -17,4 +20,16 @@ type Profile struct {
 
 func (p *Profile) key(ctx appengine.Context) (key *datastore.Key) {
     return profileKey(ctx, p.UserID)
+}
+
+func (p *Profile) Put(req *http.Request) (err error) {
+    ctx := appengine.NewContext(req)
+
+    key := p.key(ctx)
+    _, err = datastore.Put(ctx, key, p)
+
+    if err == nil {
+        context.Set(req, reqProfile, p)
+    }
+    return
 }

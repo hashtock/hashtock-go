@@ -34,7 +34,7 @@ func (o *OrderService) EndPoints() (endpoints []*api.EndPoint) {
 }
 
 func ActiveOrders(rw http.ResponseWriter, req *http.Request) {
-    orders, err := models.GetActiveOrders(req)
+    orders, err := models.GetActiveUserOrders(req)
 
     if err != nil {
         http_utils.SerializeErrorResponse(rw, req, err)
@@ -45,7 +45,7 @@ func ActiveOrders(rw http.ResponseWriter, req *http.Request) {
 }
 
 func CompletedOrder(rw http.ResponseWriter, req *http.Request) {
-    orders, err := models.GetCompletedOrders(req)
+    orders, err := models.GetCompletedUserOrders(req)
 
     if err != nil {
         http_utils.SerializeErrorResponse(rw, req, err)

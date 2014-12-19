@@ -17,7 +17,8 @@ func init() {
     user_service := &services.CurrentUserService{}
     tag_service := &services.HashTagService{}
     order_service := &services.OrderService{}
-    myapi := api.NewApi(app_routes, user_service, tag_service, order_service)
+    cron_service := &services.CronService{}
+    myapi := api.NewApi(app_routes, user_service, tag_service, order_service, cron_service)
 
     n := negroni.New(myapi.Middlewares()...)
     n.UseHandler(r)

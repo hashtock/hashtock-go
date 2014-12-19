@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "errors"
     "fmt"
+    "io"
     "net/http"
 )
 
@@ -50,4 +51,9 @@ func SerializeErrorResponse(rw http.ResponseWriter, req *http.Request, err error
     }
 
     return SerializeResponse(rw, req, http_err, http_err.ErrCode())
+}
+
+func SimpleResponse(rw http.ResponseWriter, text string, status_code int) {
+    rw.WriteHeader(status_code)
+    io.WriteString(rw, text)
 }
