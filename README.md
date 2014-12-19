@@ -19,6 +19,7 @@ goapp get github.com/codegangsta/negroni
 goapp get code.google.com/p/go-uuid/uuid
 goapp get github.com/gorilla/context
 goapp get github.com/stretchr/testify/suite
+goapp get github.com/rs/cors
 ```
 
 ## Serve
