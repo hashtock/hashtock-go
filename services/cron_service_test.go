@@ -33,8 +33,9 @@ func (s *ServicesTestSuite) TestExecuteBankBuyOrders() {
     s.Len(shares, 0)
 
     // Execute bank orders
-    admin_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, s.AdminUser)
-    rec := s.Do(admin_req)
+    cron_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, nil)
+    cron_req.Header.Set("X-AppEngine-Cron", "true")
+    rec := s.Do(cron_req)
 
     // Request went well
     s.Equal(rec.Code, http.StatusOK, rec.Body.String())
@@ -88,8 +89,9 @@ func (s *ServicesTestSuite) TestExecuteBankSellOrders() {
     s.Equal(shares, []models.TagShare{user_share})
 
     // Execute bank orders
-    admin_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, s.AdminUser)
-    rec := s.Do(admin_req)
+    cron_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, nil)
+    cron_req.Header.Set("X-AppEngine-Cron", "true")
+    rec := s.Do(cron_req)
 
     // Request went well
     s.Equal(rec.Code, http.StatusOK, rec.Body.String())
