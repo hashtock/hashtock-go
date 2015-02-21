@@ -1,102 +1,82 @@
 package services
 
 import (
+    "encoding/json"
     "net/http"
 
-    "github.com/gorilla/mux"
+    "github.com/go-martini/martini"
+    "github.com/martini-contrib/render"
 
-    "github.com/hashtock/hashtock-go/api"
-    "github.com/hashtock/hashtock-go/http_utils"
-
+    "github.com/hashtock/hashtock-go/core"
     "github.com/hashtock/hashtock-go/models"
 )
 
-type HashTagService struct{}
-
-func (h *HashTagService) Name() string {
-    return "tag"
-}
-
-func (h *HashTagService) EndPoints() (endpoints []*api.EndPoint) {
-    tags := api.NewEndPoint("/", "GET", "tags", ListOfAllHashTags)
-    new_tag := api.NewEndPoint("/", "POST", "new_tag", NewHashTag)
-    tag_info := api.NewEndPoint("/{tag}/", "GET", "tag_info", TagInfo)
-    set_tag_value := api.NewEndPoint("/{tag}/", "PUT", "set_tag_value", SetTagValue)
-
-    endpoints = []*api.EndPoint{
-        tags,
-        new_tag,
-        tag_info,
-        set_tag_value,
-    }
-    return
-}
-
 // List of all tags with bank values
-func ListOfAllHashTags(rw http.ResponseWriter, req *http.Request) {
+func ListOfAllHashTags(req *http.Request, r render.Render) {
     tags, err := models.GetAllHashTags(req)
 
     if err != nil {
-        http.Error(rw, err.Error(), http.StatusInternalServerError)
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
-    http_utils.SerializeResponse(rw, req, tags, http.StatusOK)
+    r.JSON(http.StatusOK, tags)
 }
 
 // Details about the hash tag
-func TagInfo(rw http.ResponseWriter, req *http.Request) {
-    vars := mux.Vars(req)
-    hash_tag_name := vars["tag"]
+func TagInfo(req *http.Request, params martini.Params, r render.Render) {
+    hash_tag_name := params["tag"]
 
     tag, err := models.GetHashTag(req, hash_tag_name)
     if err != nil {
-        http_utils.SerializeErrorResponse(rw, req, err)
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
-    http_utils.SerializeResponse(rw, req, tag, http.StatusOK)
+    r.JSON(http.StatusOK, tag)
 }
 
 // Add new tag (admin)
-func NewHashTag(rw http.ResponseWriter, req *http.Request) {
+func NewHashTag(req *http.Request, r render.Render) {
     tag := models.HashTag{}
-    if err := http_utils.DeSerializeRequest(*req, &tag); err != nil {
-        http_utils.SerializeErrorResponse(rw, req, err)
+
+    decoder := json.NewDecoder(req.Body)
+    if err := decoder.Decode(&tag); err != nil {
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
     new_tag, err := models.AddHashTag(req, tag)
     if err != nil {
-        http_utils.SerializeErrorResponse(rw, req, err)
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
-    http_utils.SerializeResponse(rw, req, new_tag, http.StatusCreated)
+    r.JSON(http.StatusCreated, new_tag)
 }
 
 // Set tag value (admin)
-func SetTagValue(rw http.ResponseWriter, req *http.Request) {
-    vars := mux.Vars(req)
-    hash_tag_name := vars["tag"]
+func SetTagValue(req *http.Request, params martini.Params, r render.Render) {
+    hash_tag_name := params["tag"]
 
     updated_tag := models.HashTag{}
-    if err := http_utils.DeSerializeRequest(*req, &updated_tag); err != nil {
-        http_utils.SerializeErrorResponse(rw, req, err)
+    decoder := json.NewDecoder(req.Body)
+    if err := decoder.Decode(&updated_tag); err != nil {
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
     if updated_tag.HashTag != "" && hash_tag_name != updated_tag.HashTag {
-        err := http_utils.NewBadRequestError("hashtag value has to be empty or correct")
-        http_utils.SerializeErrorResponse(rw, req, err)
+        err := core.NewBadRequestError("hashtag value has to be empty or correct")
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
     tag, err := models.UpdateHashTagValue(req, hash_tag_name, updated_tag.Value)
     if err != nil {
-        http_utils.SerializeErrorResponse(rw, req, err)
+        r.JSON(core.ErrToErrorer(err))
         return
     }
 
-    http_utils.SerializeResponse(rw, req, tag, http.StatusOK)
+    r.JSON(http.StatusOK, tag)
 }

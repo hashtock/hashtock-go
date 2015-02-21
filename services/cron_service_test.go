@@ -33,12 +33,12 @@ func (s *ServicesTestSuite) TestExecuteBankBuyOrders() {
     s.Len(shares, 0)
 
     // Execute bank orders
-    cron_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, nil)
+    cron_req := s.NewUserRequest("GET", "/_cron/bank-orders/", nil, nil)
     cron_req.Header.Set("X-AppEngine-Cron", "true")
     rec := s.Do(cron_req)
 
     // Request went well
-    s.Equal(rec.Code, http.StatusOK, rec.Body.String())
+    s.Equal(http.StatusOK, rec.Code, rec.Body.String())
 
     // New request to get real, not cached data
     user_req = s.DummyRequest(s.User)
@@ -85,16 +85,16 @@ func (s *ServicesTestSuite) TestExecuteBankSellOrders() {
     shares, _ := models.GetProfileShares(user_req, profile)
     s.Len(activeOrders, 1)
     s.Len(completedOrders, 0)
-    s.Equal(profile.Founds, models.StartingFounds)
-    s.Equal(shares, []models.TagShare{user_share})
+    s.Equal(models.StartingFounds, profile.Founds)
+    s.Equal([]models.TagShare{user_share}, shares)
 
     // Execute bank orders
-    cron_req := s.NewUserRequest("GET", "/api/_cron/bank-orders/", nil, nil)
+    cron_req := s.NewUserRequest("GET", "/_cron/bank-orders/", nil, nil)
     cron_req.Header.Set("X-AppEngine-Cron", "true")
     rec := s.Do(cron_req)
 
     // Request went well
-    s.Equal(rec.Code, http.StatusOK, rec.Body.String())
+    s.Equal(http.StatusOK, rec.Code, rec.Body.String())
 
     // New request to get real, not cached data
     user_req = s.DummyRequest(s.User)
@@ -114,7 +114,7 @@ func (s *ServicesTestSuite) TestExecuteBankSellOrders() {
     hashTagAfter, _ := models.GetHashTag(user_req, "Tag1")
     s.Len(activeOrdersAfter, 0)
     s.Len(completedOrdersAfter, 1)
-    s.Equal(profileAfter.Founds, models.StartingFounds+2*3)
-    s.Equal(sharesAfter, []models.TagShare{expected_share})
-    s.Equal(hashTagAfter, expectedHashTagAfter)
+    s.Equal(models.StartingFounds+2*3, profileAfter.Founds)
+    s.Equal([]models.TagShare{expected_share}, sharesAfter)
+    s.Equal(expectedHashTagAfter, hashTagAfter)
 }

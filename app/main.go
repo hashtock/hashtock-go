@@ -3,25 +3,44 @@ package app
 import (
     "net/http"
 
-    "github.com/gorilla/mux"
+    "github.com/go-martini/martini"
+    "github.com/martini-contrib/render"
 
-    "github.com/codegangsta/negroni"
-    "github.com/hashtock/hashtock-go/api"
     "github.com/hashtock/hashtock-go/services"
 )
 
 func init() {
-    r := mux.NewRouter()
-    app_routes := r.PathPrefix("/api/").Subrouter()
+    m := martini.Classic()
+    m.Use(render.Renderer())
+    m.Use(services.EnforceAuth)
 
-    user_service := &services.CurrentUserService{}
-    tag_service := &services.HashTagService{}
-    order_service := &services.OrderService{}
-    cron_service := &services.CronService{}
-    myapi := api.NewApi(app_routes, user_service, tag_service, order_service, cron_service)
+    m.Group("/api", func(r martini.Router) {
+        r.Group("/user", func(sr martini.Router) {
+            sr.Get("/", services.CurrentProfile).Name("User:CurentUser")
+            sr.Get("/tags/", services.Shares).Name("User:UserTags")
+        })
 
-    n := negroni.New(myapi.Middlewares()...)
-    n.UseHandler(r)
+        r.Group("/tag", func(sr martini.Router) {
+            sr.Get("/", services.ListOfAllHashTags).Name("Tag:Tags")
+            sr.Post("/", services.NewHashTag).Name("Tag:newTag")
+            sr.Get("/:tag/", services.TagInfo).Name("Tag:TagInfo")
+            sr.Put("/:tag/", services.SetTagValue).Name("Tag:setTagValue")
+        })
 
-    http.Handle("/", n)
+        r.Group("/order", func(sr martini.Router) {
+            sr.Get("/", services.ActiveOrders).Name("Order:Orders")
+            sr.Post("/", services.NewOrder).Name("Order:NewOrder")
+            sr.Get("/history/", services.CompletedOrder).Name("Order:CompletedOrders")
+            sr.Get("/:uuid/", services.OrderDetails).Name("Order:OrderDetails")
+            sr.Delete("/:uuid/", services.CancelOrder).Name("Order:CancelOrder")
+        })
+
+        r.Get("/", apiDefinition)
+    })
+
+    m.Group("/_cron", func(r martini.Router) {
+        r.Get("/bank-orders/", services.ExecuteBankOrders).Name("Cron:executeBankOrders")
+    })
+
+    http.Handle("/", m)
 }

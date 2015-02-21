@@ -4,33 +4,17 @@ import (
     "log"
     "net/http"
 
-    "github.com/hashtock/hashtock-go/api"
-    "github.com/hashtock/hashtock-go/http_utils"
+    "github.com/martini-contrib/render"
 
     "github.com/hashtock/hashtock-go/models"
 )
 
-type CronService struct{}
-
-func (c *CronService) Name() string {
-    return "_cron"
-}
-
-func (c *CronService) EndPoints() (endpoints []*api.EndPoint) {
-    bank_orders := api.NewEndPoint("/bank-orders/", "GET", "execute_bank_orders", ExecuteBankOrders)
-
-    endpoints = []*api.EndPoint{
-        bank_orders,
-    }
-    return
-}
-
 // Trigger execution of bank orders
 // TODO(access): This endpoind should only by available to admin or cron
-func ExecuteBankOrders(rw http.ResponseWriter, req *http.Request) {
+func ExecuteBankOrders(req *http.Request, r render.Render) {
     activeOrders, err := models.GetAllActiveBankOrders(req)
     if err != nil {
-        http_utils.SimpleResponse(rw, err.Error(), http.StatusInternalServerError)
+        r.Error(http.StatusInternalServerError)
         return
     }
 
@@ -41,5 +25,5 @@ func ExecuteBankOrders(rw http.ResponseWriter, req *http.Request) {
         }
     }
 
-    rw.WriteHeader(http.StatusOK)
+    r.Status(http.StatusOK)
 }
