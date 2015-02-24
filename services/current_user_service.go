@@ -3,47 +3,32 @@ package services
 import (
     "net/http"
 
-    "github.com/hashtock/hashtock-go/api"
-    "github.com/hashtock/hashtock-go/http_utils"
+    "github.com/go-martini/martini"
+    "github.com/martini-contrib/render"
 
+    "github.com/hashtock/hashtock-go/core"
     "github.com/hashtock/hashtock-go/models"
 )
 
-type CurrentUserService struct{}
-
-func (c *CurrentUserService) Name() string {
-    return "user"
-}
-
-func (c *CurrentUserService) EndPoints() (endpoints []*api.EndPoint) {
-    user := api.NewEndPoint("/", "GET", "user", c.Profile)          // High level user details
-    tags := api.NewEndPoint("/tags/", "GET", "user_tags", c.Shares) // List of users shares of tags
-
-    endpoints = []*api.EndPoint{
-        user,
-        tags,
-    }
-    return
-}
-
-func (c *CurrentUserService) Profile(rw http.ResponseWriter, req *http.Request) {
+func CurrentProfile(req *http.Request, r render.Render) {
     profile, _ := models.GetProfile(req)
 
-    http_utils.SerializeResponse(rw, req, profile, http.StatusOK)
+    r.JSON(http.StatusOK, profile)
 }
 
-func (c *CurrentUserService) Shares(rw http.ResponseWriter, req *http.Request) {
+func Shares(req *http.Request, r render.Render) {
     profile, _ := models.GetProfile(req)
     shares, _ := models.GetProfileShares(req, profile)
 
-    http_utils.SerializeResponse(rw, req, shares, http.StatusOK)
+    r.JSON(http.StatusOK, shares)
 }
 
-func (c *CurrentUserService) ServeHTTP(rw http.ResponseWriter, req *http.Request, next http.HandlerFunc) {
+func EnforceAuth(req *http.Request, c martini.Context, r render.Render) {
     if _, err := models.GetProfile(req); err != nil && req.Header.Get("X-AppEngine-Cron") == "" {
-        http.Error(rw, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+        hErr := core.NewForbiddenError()
+        r.JSON(hErr.ErrCode(), hErr)
         return
     }
 
-    next(rw, req)
+    c.Next()
 }

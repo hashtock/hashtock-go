@@ -2,5 +2,5 @@ application: hashtock
 
 cron:
 - description: Bank orders
-  url: /api/_cron/bank-orders/
+  url: /_cron/bank-orders/
   schedule: every 5 minutes

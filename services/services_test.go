@@ -18,9 +18,15 @@ func (s *ServicesTestSuite) TestApiHasAllEndpoints() {
     json_body := s.JsonResponceToStringMap(rec)
 
     expected := gaetestsuite.Json{
-        "user":  "/api/user/",
-        "tag":   "/api/tag/",
-        "order": "/api/order/",
+        "Order:CancelOrder":     "/api/order/:uuid/",
+        "Order:CompletedOrders": "/api/order/history/",
+        "Order:NewOrder":        "/api/order/",
+        "Order:OrderDetails":    "/api/order/:uuid/",
+        "Order:Orders":          "/api/order/",
+        "Tag:TagInfo":           "/api/tag/:tag/",
+        "Tag:Tags":              "/api/tag/",
+        "User:CurentUser":       "/api/user/",
+        "User:UserTags":         "/api/user/tags/",
     }
 
     s.Equal(http.StatusOK, rec.Code)

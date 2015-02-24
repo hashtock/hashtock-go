@@ -4,7 +4,7 @@ runtime: go
 api_version: go1
 
 handlers:
-- url: /api/_cron/.*
+- url: /_cron/.*
   script: _go_app
   login: admin
 

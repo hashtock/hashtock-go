@@ -12,11 +12,15 @@ import (
 // TODO(security): It would be good to expand this to test ALL api urls
 func (s *ServicesTestSuite) TestUserHasToBeLoggedIn() {
     expectedStatus := http.StatusForbidden
-    expectedBody := http.StatusText(expectedStatus) + "\n"
+    expected := gaetestsuite.Json{
+        "code":  expectedStatus,
+        "error": http.StatusText(expectedStatus),
+    }
 
     rec := s.ExecuteJsonRequest("GET", "/api/user/", nil, s.NoUser)
+    json_body := s.JsonResponceToStringMap(rec)
 
-    s.Equal(expectedBody, rec.Body.String())
+    s.Equal(expected, json_body)
     s.Equal(expectedStatus, rec.Code)
 }
 

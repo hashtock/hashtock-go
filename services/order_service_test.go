@@ -158,7 +158,7 @@ func (s *ServicesTestSuite) TestCancelOrder() {
     rec := s.Do(req)
 
     s.Equal(http.StatusNoContent, rec.Code)
-    s.Equal(0, rec.Body.Len())
+    s.Equal(0, rec.Body.Len(), rec.Body.String())
 
     cancelled_order, _ := models.GetOrder(req, "FAKE-UUID")
     s.Nil(cancelled_order)

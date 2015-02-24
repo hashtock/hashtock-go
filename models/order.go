@@ -8,7 +8,7 @@ import (
     "appengine"
     "appengine/datastore"
 
-    "github.com/hashtock/hashtock-go/http_utils"
+    "github.com/hashtock/hashtock-go/core"
 )
 
 // User part of Order
@@ -75,7 +75,7 @@ func (o *OrderBase) IsValid(req *http.Request) (err error) {
 
     if len(fields) > 0 {
         msg := fmt.Sprintf("Incorrect fields: %s", strings.Join(fields, ", "))
-        err = http_utils.NewBadRequestError(msg)
+        err = core.NewBadRequestError(msg)
     }
     return
 }

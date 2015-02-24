@@ -9,7 +9,7 @@ import (
     "appengine/datastore"
     "code.google.com/p/go-uuid/uuid"
 
-    "github.com/hashtock/hashtock-go/http_utils"
+    "github.com/hashtock/hashtock-go/core"
 )
 
 func orderKey(ctx appengine.Context, order_uuid string) (key *datastore.Key) {
@@ -62,19 +62,19 @@ func GetOrder(req *http.Request, order_uuid string) (order *Order, err error) {
     not_found_msg := fmt.Sprintf("Order %#v not found", order_uuid)
 
     if err == datastore.ErrNoSuchEntity {
-        err = http_utils.NewNotFoundError(not_found_msg)
+        err = core.NewNotFoundError(not_found_msg)
     } else if err != nil {
-        err = http_utils.NewInternalServerError(err.Error())
+        err = core.NewInternalServerError(err.Error())
     }
 
     var ok bool
     ok, err = order.canAccess(req)
     if err != nil {
-        err = http_utils.NewInternalServerError(err.Error())
+        err = core.NewInternalServerError(err.Error())
     }
 
     if !ok {
-        err = http_utils.NewNotFoundError(not_found_msg)
+        err = core.NewNotFoundError(not_found_msg)
         order = nil
     }
 
@@ -88,7 +88,7 @@ func CancelOrder(req *http.Request, order_uuid string) (err error) {
     }
 
     if !order.isCancellable() {
-        err = http_utils.NewBadRequestError("Order can not be canceled any more")
+        err = core.NewBadRequestError("Order can not be canceled any more")
         return
     }
 
@@ -185,12 +185,12 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
     if order.isBuy() {
         if profile.Founds < transaction_value {
             msg := fmt.Sprintf("User %v does not have enough founds to complete %v", profile, order)
-            return http_utils.NewBadRequestError(msg)
+            return core.NewBadRequestError(msg)
         }
 
         if hashTag.InBank < order.Quantity {
             msg := fmt.Sprintf("Bank does not have enough shares to complete %v", order)
-            return http_utils.NewBadRequestError(msg)
+            return core.NewBadRequestError(msg)
         }
 
         profile.Founds -= transaction_value
@@ -203,7 +203,7 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
     } else {
         if tagShare.Quantity < order.Quantity {
             msg := fmt.Sprintf("User %v does not have enough shares to complete %v", profile, order)
-            return http_utils.NewBadRequestError(msg)
+            return core.NewBadRequestError(msg)
         }
 
         profile.Founds += transaction_value

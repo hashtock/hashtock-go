@@ -9,7 +9,7 @@ import (
     "appengine/datastore"
     "appengine/user"
 
-    "github.com/hashtock/hashtock-go/http_utils"
+    "github.com/hashtock/hashtock-go/core"
 )
 
 func hashTagKey(ctx appengine.Context, hash_tag string) (key *datastore.Key) {
@@ -33,9 +33,9 @@ func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *HashTag, err
 
     if err == datastore.ErrNoSuchEntity {
         msg := fmt.Sprintf("HashTag %#v not found", hash_tag_name)
-        err = http_utils.NewNotFoundError(msg)
+        err = core.NewNotFoundError(msg)
     } else if err != nil {
-        err = http_utils.NewInternalServerError(err.Error())
+        err = core.NewInternalServerError(err.Error())
     }
 
     return
@@ -43,7 +43,7 @@ func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *HashTag, err
 
 func hashTagExists(req *http.Request, hash_tag_name string) (ok bool, err error) {
     if strings.TrimSpace(hash_tag_name) != hash_tag_name || (hash_tag_name == "") {
-        return false, http_utils.NewBadRequestError("Tag name invalid")
+        return false, core.NewBadRequestError("Tag name invalid")
     }
 
     ctx := appengine.NewContext(req)
@@ -66,7 +66,7 @@ func hashTagExistsOrError(req *http.Request, hash_tag_name string) (err error) {
 
     if !exists {
         msg := fmt.Sprintf("Tag '%v' does not exist", hash_tag_name)
-        return http_utils.NewNotFoundError(msg)
+        return core.NewNotFoundError(msg)
     }
     return
 }
@@ -75,8 +75,7 @@ func CanUserCreateUpdateHashTag(req *http.Request) (err error) {
     ctx := appengine.NewContext(req)
 
     if !user.IsAdmin(ctx) {
-        msg_403 := http.StatusText(http.StatusForbidden)
-        return http_utils.NewForbiddenError(msg_403)
+        return core.NewForbiddenError()
     }
 
     return nil
@@ -91,7 +90,7 @@ func AddHashTag(req *http.Request, tag HashTag) (new_tag HashTag, err error) {
     if exists, err = hashTagExists(req, tag.HashTag); err != nil {
         return
     } else if exists {
-        err = http_utils.NewBadRequestError("Tag alread exists")
+        err = core.NewBadRequestError("Tag alread exists")
         return
     }
 
@@ -109,7 +108,7 @@ func UpdateHashTagValue(req *http.Request, hash_tag_name string, new_value float
     }
 
     if new_value <= 0 {
-        err = http_utils.NewBadRequestError("Value has to be positive")
+        err = core.NewBadRequestError("Value has to be positive")
         return
     }
 
