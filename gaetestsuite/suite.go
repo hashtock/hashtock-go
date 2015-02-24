@@ -186,7 +186,7 @@ func (g *GAETestSuite) JsonResponceToStringMap(rec *httptest.ResponseRecorder) J
     }
 
     if err := json.Unmarshal(rec.Body.Bytes(), &json_map); err != nil {
-        g.T().Fatalf("Could not unmarshal map: %s", rec.Body.String())
+        g.T().Fatalf("Could not unmarshal map: %s. Err: %v", rec.Body.String(), err)
     }
     return json_map
 }

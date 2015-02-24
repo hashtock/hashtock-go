@@ -4,6 +4,7 @@ package services_test
 
 import (
     "net/http"
+    "time"
 
     "github.com/hashtock/hashtock-go/gaetestsuite"
     "github.com/hashtock/hashtock-go/models"
@@ -81,4 +82,74 @@ func (s *ServicesTestSuite) TestGetUnExistingTag() {
 
     s.Equal(http.StatusNotFound, rec.Code)
     s.Equal(expected, json_body) // This is not very robust for error msg
+}
+
+func (s *ServicesTestSuite) TestValuesForUnExistingTag() {
+    rec := s.ExecuteJsonRequest("GET", "/api/tag/MISSING/values/", nil, s.User)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  http.StatusNotFound,
+        "error": "Tag 'MISSING' does not exist",
+    }
+
+    s.Equal(http.StatusNotFound, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *ServicesTestSuite) TestValuesExistingTagNoValuesYet() {
+    req := s.NewJsonRequest("GET", "/api/tag/TestTag/values/", nil, s.User)
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  100.0,
+    }
+    tag.Put(req)
+
+    rec := s.Do(req)
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal("null", rec.Body.String())
+}
+
+func (s *ServicesTestSuite) TestValuesForTag() {
+    req := s.NewJsonRequest("GET", "/api/tag/TestTag/values/", nil, s.User)
+
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  100.0,
+    }
+    tag.Put(req)
+
+    tagValue := models.HashTagValue{
+        HashTag: "TestTag",
+        Value:   30,
+        Date:    time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
+    }
+    tagValue.Put(req)
+
+    tagValue2 := models.HashTagValue{
+        HashTag: "TestTag",
+        Value:   29,
+        Date:    time.Date(2015, time.February, 04, 19, 15, 0, 0, time.UTC),
+    }
+    tagValue2.Put(req)
+
+    expected := gaetestsuite.JsonList{
+        gaetestsuite.Json{
+            "value": 29,
+            "date":  "2015-02-04T19:15:00Z",
+        },
+        gaetestsuite.Json{
+            "value": 30,
+            "date":  "2015-02-04T19:30:00Z",
+        },
+    }
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToListOfStringMap(rec)
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Equal(expected, json_body)
 }

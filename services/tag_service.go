@@ -80,3 +80,15 @@ func SetTagValue(req *http.Request, params martini.Params, r render.Render) {
 
     r.JSON(http.StatusOK, tag)
 }
+
+func TagValues(req *http.Request, params martini.Params, r render.Render) {
+    hashTagName := params["tag"]
+
+    tagValues, err := models.GetHashTagValues(req, hashTagName)
+    if err != nil {
+        r.JSON(core.ErrToErrorer(err))
+        return
+    }
+
+    r.JSON(http.StatusOK, tagValues)
+}

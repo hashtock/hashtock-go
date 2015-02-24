@@ -25,6 +25,7 @@ func init() {
             sr.Post("/", services.NewHashTag).Name("Tag:newTag")
             sr.Get("/:tag/", services.TagInfo).Name("Tag:TagInfo")
             sr.Put("/:tag/", services.SetTagValue).Name("Tag:setTagValue")
+            sr.Get("/:tag/values/", services.TagValues).Name("Tag:TagValues")
         })
 
         r.Group("/order", func(sr martini.Router) {
@@ -40,6 +41,7 @@ func init() {
 
     m.Group("/_cron", func(r martini.Router) {
         r.Get("/bank-orders/", services.ExecuteBankOrders).Name("Cron:executeBankOrders")
+        r.Get("/tag-values/", services.FetchLatestTagValues).Name("Cron:fetchLatestTagValues")
     })
 
     http.Handle("/", m)

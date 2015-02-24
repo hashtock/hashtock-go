@@ -25,6 +25,7 @@ func (s *ServicesTestSuite) TestApiHasAllEndpoints() {
         "Order:Orders":          "/api/order/",
         "Tag:TagInfo":           "/api/tag/:tag/",
         "Tag:Tags":              "/api/tag/",
+        "Tag:TagValues":         "/api/tag/:tag/values/",
         "User:CurentUser":       "/api/user/",
         "User:UserTags":         "/api/user/tags/",
     }

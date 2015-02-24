@@ -8,7 +8,8 @@ import (
 )
 
 const (
-    hashTagKind = "HashTag"
+    hashTagKind        = "HashTag"
+    initialInBankValue = 100.0
 )
 
 type HashTag struct {

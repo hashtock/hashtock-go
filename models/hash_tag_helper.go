@@ -41,6 +41,32 @@ func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *HashTag, err
     return
 }
 
+func GetOrCreateHashTag(req *http.Request, hashTagName string) (hashTag *HashTag, err error) {
+    if err = CanUserCreateUpdateHashTag(req); err != nil {
+        return
+    }
+
+    ctx := appengine.NewContext(req)
+
+    hashTag = &HashTag{
+        HashTag: hashTagName,
+    }
+
+    key := hashTagKey(ctx, hashTagName)
+    err = datastore.Get(ctx, key, hashTag)
+
+    if err == datastore.ErrNoSuchEntity {
+        hashTag.InBank = initialInBankValue
+        if err = hashTag.Put(req); err != nil {
+            return
+        }
+    } else if err != nil {
+        err = core.NewInternalServerError(err.Error())
+    }
+
+    return
+}
+
 func hashTagExists(req *http.Request, hash_tag_name string) (ok bool, err error) {
     if strings.TrimSpace(hash_tag_name) != hash_tag_name || (hash_tag_name == "") {
         return false, core.NewBadRequestError("Tag name invalid")
@@ -74,6 +100,10 @@ func hashTagExistsOrError(req *http.Request, hash_tag_name string) (err error) {
 func CanUserCreateUpdateHashTag(req *http.Request) (err error) {
     ctx := appengine.NewContext(req)
 
+    if req.Header.Get("X-AppEngine-Cron") == "true" {
+        return nil
+    }
+
     if !user.IsAdmin(ctx) {
         return core.NewForbiddenError()
     }
@@ -94,7 +124,7 @@ func AddHashTag(req *http.Request, tag HashTag) (new_tag HashTag, err error) {
         return
     }
 
-    tag.InBank = 100.0
+    tag.InBank = initialInBankValue
     if err = tag.Put(req); err != nil {
         return
     }
@@ -114,6 +144,10 @@ func UpdateHashTagValue(req *http.Request, hash_tag_name string, new_value float
 
     tag, err = GetHashTag(req, hash_tag_name)
     if err != nil {
+        return
+    }
+
+    if tag.Value == new_value {
         return
     }
 

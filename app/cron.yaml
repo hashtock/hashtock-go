@@ -4,3 +4,6 @@ cron:
 - description: Bank orders
   url: /_cron/bank-orders/
   schedule: every 5 minutes
+- description: Tag popularity
+  url: /_cron/tag-values/
+  schedule: every 5 minutes
