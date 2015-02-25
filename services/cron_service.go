@@ -64,8 +64,6 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
         return
     }
 
-    wg := sync.WaitGroup{}
-
     tags := make(map[string]*models.HashTag, len(tagCountTrend))
     for _, tagCounts := range tagCountTrend {
         tag, err := models.GetOrCreateHashTag(req, tagCounts.Name)
@@ -90,11 +88,7 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
                 latestValue = float64(count.Count)
             }
 
-            wg.Add(1)
-            go func(tv models.HashTagValue) {
-                tv.Put(req)
-                wg.Done()
-            }(tagValue)
+            tagValue.Put(req)
         }
 
         if tags[tagCounts.Name].Value != latestValue {
@@ -103,8 +97,8 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
             delete(tags, tagCounts.Name)
         }
     }
-    wg.Wait()
 
+    wg := sync.WaitGroup{}
     for _, tag := range tags {
         wg.Add(1)
         go func(innerTag *models.HashTag) {
