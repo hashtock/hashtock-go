@@ -58,7 +58,7 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
         return
     }
 
-    tagCountTrend, err := tracker.TrendsSince(latestUpdate)
+    tagCountTrend, err := tracker.TrendsSince(latestUpdate.Add(time.Second * 1))
     if err != nil {
         r.JSON(core.ErrToErrorer(err))
         return
