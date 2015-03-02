@@ -1,0 +1,67 @@
+<section class="content-header">
+    <h1>
+        Hash Tags
+        <small>bank valuation</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href="#"><i class="fa fa-dashboard"></i>Home</a>
+        </li>
+        <li>
+            <a href="#">Tag</a>
+        </li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-6"></div>
+                        <div class="col-xs-6">
+                            <div class="dataTables_filter" id="tags_filter">
+                                <label>
+                                    Search:
+                                    <input ng-model="query" type="text" aria-controls="tags">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <table id="tags" class="table table-bordered table-striped dataTable" aria-describedby="tags_info">
+                        <thead>
+                            <tr role="row">
+                                <th ng-class="orderProp == 'hashtag' ? (reverse ? 'sorting_asc' : 'sorting_desc') : 'sorting'" ng-click="reverse = (orderProp == 'hashtag' ? !reverse :false); orderProp = 'hashtag';" role="columnheader">
+                                    Name
+                                </th>
+                                <th ng-class="orderProp == '-value' ? (reverse ? 'sorting_asc' : 'sorting_desc') : 'sorting'" ng-click="reverse = (orderProp == '-value' ? !reverse :false); orderProp = '-value';" role="columnheader">
+                                    Value
+                                </th>
+                                <th role="columnheader">
+                                    In bank
+                                </th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th rowspan="1" colspan="1">Name</th>
+                                <th rowspan="1" colspan="1">Value</th>
+                                <th rowspan="1" colspan="1">In bank</th>
+                            </tr>
+                        </tfoot>
+                        <tbody role="alert" aria-live="polite" aria-relevant="all">
+                            <tr ng-repeat="tag in tags | filter:query | orderBy:orderProp:reverse" ng-class-odd="'odd'" ng-class-even="'even'">
+                                <td class="sorting_1">
+                                    <a href="#/tags/{{tag.hashtag}}">{{tag.hashtag}}</a>
+                                </td>
+                                <td class="">{{tag.value}}</td>
+                                <td class="">{{tag.in_bank}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
