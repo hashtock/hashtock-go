@@ -19,7 +19,8 @@ func GetHashTagValues(req *http.Request, hashTagName string) (values []HashTagVa
     }
     ctx := appengine.NewContext(req)
 
-    q := datastore.NewQuery(hashTagValueKind).Order("Date")
+    since := time.Now().Add(time.Hour * -24)
+    q := datastore.NewQuery(hashTagValueKind).Filter("HashTag = ", hashTagName).Filter("Date >", since).Order("Date")
     _, err = q.GetAll(ctx, &values)
     return
 }
