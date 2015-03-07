@@ -1,0 +1,91 @@
+<section class="content-header">
+    <h1>
+        #{{ tag.hashtag }}
+        <small>details</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href="#"><i class="fa fa-dashboard"></i>Home</a>
+        </li>
+        <li>
+            <a href="/#/tags">Tag</a>
+        </li>
+        <li class="active">
+            {{ tag.hashtag }}
+        </li>
+    </ol>
+</section>
+
+<section class="content">
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <dl class="dl-horizontal">
+                                <dt>Current value:</dt>
+                                <dd>{{ tag.value }}</dd>
+                                <dt>Availaible in bank:</dt>
+                                <dd>{{ tag.in_bank | number : 2 }}</dd>
+                                <dt ng-show="maxSharesToSell">You own:</dt>
+                                <dd ng-show="maxSharesToSell">{{ maxSharesToSell | number : 2 }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-2" ng-show="canBuyFromBank()">
+                            <button ng-click="newBankOrder('buy')" ng-class="{'disabled': isOrderInProgress()}" class="btn btn-block btn-success">Buy from bank</button>
+                        </div>
+                        <div class="col-xs-2" ng-show="hasSharesToSell()">
+                            <button ng-click="newBankOrder('sell')" ng-class="{'disabled': isOrderInProgress()}" class="btn btn-block btn-success">Sell to bank</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" ng-show="isDealingWithBank()">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <strong class="text-capitalize">{{ newOrder.action }}</strong> shares
+                </div>
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <ionslider min="0" max="maxSharesInCurrentOrder() | number : 2" step="0.1" action="shareQuantityChanged(data)"></ionslider>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-8">
+                            Transaction value: {{ newOrder.quantity * tag.value | number : 2 }}
+                        </div>
+                        <div class="col-xs-2">
+                            <button ng-class="{'disabled': !canExecuteOrder()}" ng-click="executeOrder()" class="btn btn-block btn-success">
+                                <strong class="text-capitalize">{{ newOrder.action }}</strong>
+                            </button>
+                        </div>
+                        <div class="col-xs-2">
+                            <button ng-click="cancelOrder()" class="btn btn-block btn-danger">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-body">
+                    <nvd3 options='options' data='data'></nvd3>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

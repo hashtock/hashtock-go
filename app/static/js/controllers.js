@@ -4,6 +4,12 @@
 
 var hashtockControllers = angular.module('hashtockControllers', []);
 
+hashtockControllers.controller('UserCtrl', ['$scope', 'User',
+    function($scope, User) {
+        $scope.user = User.query();
+    }
+]);
+
 hashtockControllers.controller('TagListCtrl', ['$scope', 'Tag',
     function($scope, Tag) {
         $scope.tags = Tag.query();
@@ -12,8 +18,154 @@ hashtockControllers.controller('TagListCtrl', ['$scope', 'Tag',
     }
 ]);
 
-hashtockControllers.controller('UserCtrl', ['$scope', 'User',
-    function($scope, User) {
-        $scope.user = User.query();
+hashtockControllers.controller('OrderListCtrl', ['$scope', 'Order',
+    function($scope, Order) {
+        $scope.historicalOrders = Order.history();
+        $scope.pendingOrders = Order.pending();
+
+        $scope.cancelOrder = function(order) {
+            order.$cancel(function(value) {
+                $scope.pendingOrders = Order.pending(function(){
+                    // In case GAE returns shity old data
+                    for (var i = 0; i < $scope.pendingOrders.length; i++) {
+                        if ($scope.pendingOrders[i].uuid === order.uuid) {
+                           $scope.pendingOrders.splice(i, 1);
+                           break;
+                        }
+                    };
+                });
+            });
+        };
     }
 ]);
+
+hashtockControllers.controller('PortfolioCtrl', ['$scope', 'Portfolio',
+    function($scope, Portfolio) {
+        $scope.portfolioTags = Portfolio.query();
+    }
+]);
+
+hashtockControllers.controller('TagDetailCtrl', ['$scope', '$routeParams', '$q', 'User', 'Tag', 'TagValues', 'Portfolio', 'Order',
+  function($scope, $routeParams, $q, User, Tag, TagValues, Portfolio, Order) {
+    $scope.user = User.query();
+    $scope.share = Portfolio.tag({tag: $routeParams.tag}, function() {
+        $scope.maxSharesToSell = $scope.share.quantity;
+    });
+    $scope.tag = Tag.get({tag: $routeParams.tag});
+    $scope.tagValues = TagValues.query({tag: $routeParams.tag}, function(values) {
+        for (var i = 0; i < values.length; i++) {
+            values[i].label = new Date(values[i].date);
+        };
+
+        $scope.data = [{
+            key: '#' + $scope.tag.hashtag,
+            values: values
+        }];
+    });
+
+    $q.all([$scope.user.$promise, $scope.tag.$promise]).then(function(){
+        var val = Math.floor(10 * $scope.user.founds / $scope.tag.value)/10;
+        $scope.maxSharesToBuy = Math.min(val, $scope.tag.in_bank);
+    })
+
+    $scope.options = {
+        title: {
+            enable: true,
+            text: 'Values over the time for last 24h'
+        },
+        chart: {
+            type: 'lineChart',
+            height: 200,
+            margin : {
+                top: 20,
+                right: 20,
+                bottom: 60,
+                left: 60
+            },
+            x: function(d){ return d.label; },
+            y: function(d){ return d.value; },
+            showLegend: false,
+            xAxis: {
+                axisLabel: 'Time',
+                tickFormat: function(d){
+                    return (new Date(d)).toLocaleTimeString();
+                }
+            },
+            yAxis: {
+                axisLabel: 'Value'
+            }
+        }
+    }
+
+    $scope.shareQuantityChanged = function(data) {
+        $scope.newOrder.quantity = data;
+        $scope.$apply();
+    }
+
+    $scope.canExecuteOrder = function() {
+        if ($scope.newOrder === undefined || $scope.newOrder.quantity <= 0) {
+            return false
+        }
+
+        if ($scope.newOrder.bank_order === true && $scope.newOrder.action === 'buy') {
+            return (0 < $scope.newOrder.quantity && $scope.newOrder.quantity <= $scope.maxSharesToBuy)
+        }
+
+        if ($scope.newOrder.bank_order === true && $scope.newOrder.action === 'sell') {
+            return (0 < $scope.newOrder.quantity && $scope.newOrder.quantity <= $scope.maxSharesToSell)
+        }
+
+        // Other cases...
+        return false
+    }
+
+    $scope.canBuyFromBank = function(action) {
+        return $scope.maxSharesToBuy > 0.1;
+    }
+
+    $scope.hasSharesToSell = function() {
+        return $scope.maxSharesToSell > 0.1;
+    }
+
+    $scope.isDealingWithBank = function() {
+        return ($scope.newOrder && $scope.newOrder.bank_order);
+    }
+
+    $scope.isOrderInProgress = function() {
+        return ($scope.newOrder !== undefined);   
+    }
+
+    $scope.maxSharesInCurrentOrder = function () {
+        var maxValue = 0
+        if ($scope.isDealingWithBank()) {
+            if ($scope.newOrder.action === 'buy') {
+                maxValue = $scope.maxSharesToBuy;
+            }
+
+            if ($scope.newOrder.action === 'sell') {
+                maxValue = $scope.maxSharesToSell;
+            }
+        }
+
+        return maxValue;
+    }
+
+    $scope.cancelOrder = function() {
+        $scope.newOrder = undefined;
+    }
+
+    $scope.newBankOrder = function(action) {
+        $scope.newOrder = new Order({
+            action: action,
+            bank_order: true,
+            hashtag: $scope.tag.hashtag,
+            quantity: 0
+        });
+    }
+
+    $scope.executeOrder = function() {
+        $scope.newOrder.$save(function(data){
+            $scope.newOrder = undefined;
+        });
+    }
+}]);

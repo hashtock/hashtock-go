@@ -12,6 +12,9 @@
         "angular-route": "1.3.x",
         "jquery": "~2.1.1",
         "bootstrap": "~3.3.2",
-        "AdminLTE": "git://github.com/almasaeed2010/AdminLTE.git#v2.0.2"
+        "AdminLTE": "git://github.com/almasaeed2010/AdminLTE.git#v2.0.2",
+        "angular-nvd3": "v1.0.0-beta",
+        "ionrangeslider": "2.0.6",
+        "ionicons": "~2.0.1"
     }
 }

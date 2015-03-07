@@ -1,0 +1,54 @@
+<section class="content-header">
+    <h1>
+        Portfolio
+    </h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href="#"><i class="fa fa-dashboard"></i>Home</a>
+        </li>
+        <li class="active">
+            Portfolio
+        </li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-body">
+                    <h5 ng-show="!historicalOrders.length" class="text-center">
+                        You don't own any shares. Buy some!
+                    </h5>
+
+                    <table ng-show="portfolioTags.length" class="table table-bordered table-striped dataTable">
+                        <thead>
+                            <tr role="row">
+                                <th role="columnheader">
+                                    Name
+                                </th>
+                                <th role="columnheader">
+                                    Quantity
+                                </th>
+                            </tr>
+                        </thead>
+                        <tfoot ng-show="portfolioTags.length > 10">
+                            <tr>
+                                <th>Name</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </tfoot>
+                        <tbody>
+                            <tr ng-repeat="tag in portfolioTags" ng-class-odd="'odd'" ng-class-even="'even'">
+                                <td>
+                                    <a href="#/tags/{{tag.hashtag}}">{{ tag.hashtag }}</a>
+                                </td>
+                                <td class="">{{ tag.quantity | number:2 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

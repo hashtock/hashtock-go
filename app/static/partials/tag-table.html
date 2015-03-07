@@ -7,8 +7,8 @@
         <li>
             <a href="#"><i class="fa fa-dashboard"></i>Home</a>
         </li>
-        <li>
-            <a href="#">Tag</a>
+        <li class="active">
+            HashTag values
         </li>
     </ol>
 </section>
@@ -55,8 +55,8 @@
                                 <td class="sorting_1">
                                     <a href="#/tags/{{tag.hashtag}}">{{tag.hashtag}}</a>
                                 </td>
-                                <td class="">{{tag.value}}</td>
-                                <td class="">{{tag.in_bank}}</td>
+                                <td class="">{{ tag.value }}</td>
+                                <td class="">{{ tag.in_bank | number : 2 }}</td>
                             </tr>
                         </tbody>
                     </table>

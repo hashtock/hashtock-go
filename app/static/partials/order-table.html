@@ -1,0 +1,102 @@
+<section class="content-header">
+    <h1>
+        Orders
+    </h1>
+    <ol class="breadcrumb">
+        <li>
+            <a href="#"><i class="fa fa-dashboard"></i>Home</a>
+        </li>
+        <li class="active">
+            Orders
+        </li>
+    </ol>
+</section>
+
+<section class="content">
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">Pending orders</h3>
+                </div>
+                <div class="box-body">
+                    <h5 ng-show="!pendingOrders.length" class="text-center">
+                        No pending orders
+                    </h5>
+
+                    <table ng-show="pendingOrders.length" class="table table-bordered table-striped dataTable">
+                        <thead>
+                            <tr role="row">
+                                <th role="columnheader">Action</th>
+                                <th role="columnheader">Tag</th>
+                                <th role="columnheader">Quantity</th>
+                                <th role="columnheader">Bank order</th>
+                                <th role="columnheader"></th>
+                            </tr>
+                        </thead>
+                        <tfoot ng-show="pendingOrders.length > 10">
+                            <tr>
+                                <th role="columnheader">Action</th>
+                                <th role="columnheader">Tag</th>
+                                <th role="columnheader">Quantity</th>
+                                <th role="columnheader">Bank order</th>
+                                <th role="columnheader"></th>
+                            </tr>
+                        </tfoot>
+                        <tbody role="alert" aria-live="polite" aria-relevant="all">
+                            <tr ng-repeat="order in pendingOrders" ng-class-odd="'odd'" ng-class-even="'even'">
+                                <td class="text-capitalize">{{ order.action }}</td>
+                                <td>{{ order.hashtag }}</td>
+                                <td>{{ order.quantity }}</td>
+                                <td class="text-capitalize">{{ order.bank_order ? 'Yes' : 'No' }}</td>
+                                <td class="collapsed">
+                                    <button ng-click="cancelOrder(order)" class="btn btn-block btn-danger">
+                                        Cancel
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">Historical orders</h3>
+                </div>
+                <div class="box-body">
+                    <h5 ng-show="!historicalOrders.length" class="text-center">
+                        No historical orders yet
+                    </h5>
+
+                    <table ng-show="historicalOrders.length" class="table table-bordered table-striped dataTable">
+                        <thead>
+                            <tr role="row">
+                                <th role="columnheader">Action</th>
+                                <th role="columnheader">Tag</th>
+                                <th role="columnheader">Quantity</th>
+                                <th role="columnheader">Bank order</th>
+                            </tr>
+                        </thead>
+                        <tfoot ng-show="pendingOrders.length > 10">
+                            <tr>
+                                <th role="columnheader">Action</th>
+                                <th role="columnheader">Tag</th>
+                                <th role="columnheader">Quantity</th>
+                                <th role="columnheader">Bank order</th>
+                            </tr>
+                        </tfoot>
+                        <tbody role="alert" aria-live="polite" aria-relevant="all">
+                            <tr ng-repeat="order in historicalOrders" ng-class-odd="'odd'" ng-class-even="'even'">
+                                <td class="text-capitalize">{{ order.action }}</td>
+                                <td>{{ order.hashtag }}</td>
+                                <td>{{ order.quantity }}</td>
+                                <td class="text-capitalize">{{ order.bank_order ? 'Yes' : 'No' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
