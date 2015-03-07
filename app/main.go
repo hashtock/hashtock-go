@@ -17,7 +17,11 @@ func init() {
     m.Group("/api", func(r martini.Router) {
         r.Group("/user", func(sr martini.Router) {
             sr.Get("/", services.CurrentProfile).Name("User:CurentUser")
-            sr.Get("/tags/", services.Shares).Name("User:UserTags")
+        })
+
+        r.Group("/portfolio", func(sr martini.Router) {
+            sr.Get("/", services.Portfolio).Name("Portfolio:All")
+            sr.Get("/:tag/", services.PortfolioTagInfo).Name("Portfolio:TagInfo")
         })
 
         r.Group("/tag", func(sr martini.Router) {

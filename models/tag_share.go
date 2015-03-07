@@ -13,7 +13,7 @@ const (
 
 type TagShare struct {
     HashTag  string  `json:"hashtag"`
-    UserID   string  `json:"user_id"`
+    UserID   string  `json:"-"`
     Quantity float64 `json:"quantity"`
 }
 

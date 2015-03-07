@@ -6,6 +6,8 @@ import (
 
     "appengine"
     "appengine/datastore"
+
+    "github.com/hashtock/hashtock-go/core"
 )
 
 func tagShareKey(ctx appengine.Context, hashTagName, userId string) (key *datastore.Key) {
@@ -16,8 +18,20 @@ func tagShareKey(ctx appengine.Context, hashTagName, userId string) (key *datast
 func GetProfileShares(req *http.Request, profile *Profile) (shares []TagShare, err error) {
     ctx := appengine.NewContext(req)
 
-    q := datastore.NewQuery(tagShareKind).Filter("UserID =", profile.UserID).Order("HashTag")
+    q := datastore.NewQuery(tagShareKind)
+    q = q.Filter("UserID =", profile.UserID).Filter("Quantity >=", 0.0)
+    q = q.Order("Quantity").Order("HashTag")
     _, err = q.GetAll(ctx, &shares)
+    return
+}
+
+func GetProfileShareByTagName(req *http.Request, profile *Profile, hashTagName string) (tagShare *TagShare, err error) {
+    tagShare, err = getOrCreateTagShare(req, profile, hashTagName)
+
+    if err == nil && tagShare.Quantity <= 0 {
+        tagShare = nil
+        err = core.NewNotFoundError(http.StatusText(http.StatusNotFound))
+    }
     return
 }
 
