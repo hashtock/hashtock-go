@@ -69,7 +69,7 @@ func (o *OrderBase) IsValid(req *http.Request) (err error) {
         fields = append(fields, "hashtag")
     }
 
-    if o.Quantity <= 0 || o.Quantity > 100 {
+    if o.Quantity < minShareStep || o.Quantity > 100 {
         fields = append(fields, "quantity")
     }
 

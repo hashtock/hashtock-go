@@ -211,8 +211,12 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
         hashTag.InBank += order.Quantity
 
         profile.Put(req)
-        tagShare.Put(req)
         hashTag.Put(req)
+        if tagShare.Quantity < minShareStep/100.0 {
+            tagShare.Delete(req)
+        } else {
+            tagShare.Put(req)
+        }
     }
 
     order.markAsComplete(req)

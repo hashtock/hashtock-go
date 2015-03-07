@@ -9,6 +9,7 @@ import (
 
 const (
     tagShareKind = "TagShare"
+    minShareStep = 0.01
 )
 
 type TagShare struct {
@@ -26,5 +27,13 @@ func (t *TagShare) Put(req *http.Request) (err error) {
 
     key := t.key(ctx)
     _, err = datastore.Put(ctx, key, t)
+    return
+}
+
+func (t *TagShare) Delete(req *http.Request) (err error) {
+    ctx := appengine.NewContext(req)
+
+    key := t.key(ctx)
+    err = datastore.Delete(ctx, key)
     return
 }
