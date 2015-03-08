@@ -43,12 +43,14 @@ hashtockApp.run(function ($rootScope, $location, User) {
             return;
         }
 
-        User.get(function(user){
+        User.get(function(user) {
             if (user.id === undefined) {
                 window.location = "/auth/login/?continue=" + encodeURIComponent($location.absUrl());
             } else {
                 $rootScope.loggedIn = true;
             }
+        }, function() {
+            window.location = "/auth/login/?continue=" + encodeURIComponent($location.absUrl());
         });
     });
 });
