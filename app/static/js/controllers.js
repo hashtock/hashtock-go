@@ -6,7 +6,7 @@ var hashtockControllers = angular.module('hashtockControllers', []);
 
 hashtockControllers.controller('UserCtrl', ['$scope', 'User',
     function($scope, User) {
-        $scope.user = User.query();
+        $scope.user = User.get();
     }
 ]);
 
@@ -47,7 +47,7 @@ hashtockControllers.controller('PortfolioCtrl', ['$scope', 'Portfolio',
 
 hashtockControllers.controller('TagDetailCtrl', ['$scope', '$routeParams', '$q', 'User', 'Tag', 'TagValues', 'Portfolio', 'Order',
   function($scope, $routeParams, $q, User, Tag, TagValues, Portfolio, Order) {
-    $scope.user = User.query();
+    $scope.user = User.get();
     $scope.share = Portfolio.tag({tag: $routeParams.tag}, function() {
         $scope.maxSharesToSell = $scope.share.quantity;
     });

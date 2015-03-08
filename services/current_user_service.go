@@ -2,6 +2,7 @@ package services
 
 import (
     "net/http"
+    "strings"
 
     "github.com/go-martini/martini"
     "github.com/martini-contrib/render"
@@ -16,12 +17,23 @@ func CurrentProfile(req *http.Request, r render.Render) {
     r.JSON(http.StatusOK, profile)
 }
 
-func EnforceAuth(req *http.Request, c martini.Context, r render.Render) {
-    if _, err := models.GetProfile(req); err != nil && req.Header.Get("X-AppEngine-Cron") == "" {
-        hErr := core.NewForbiddenError()
-        r.JSON(hErr.ErrCode(), hErr)
-        return
-    }
+func EnforceAuth(exceptions ...string) martini.Handler {
+    return func(req *http.Request, c martini.Context, r render.Render) {
+        isException := false
+        for _, prefix := range exceptions {
+            if strings.HasPrefix(req.URL.Path, prefix) {
+                isException = true
+                break
+            }
+        }
 
-    c.Next()
+        if !isException && req.Header.Get("X-AppEngine-Cron") == "" {
+            if _, err := models.GetProfile(req); err != nil {
+                hErr := core.NewForbiddenError()
+                r.JSON(hErr.ErrCode(), hErr)
+                return
+            }
+        }
+        c.Next()
+    }
 }

@@ -12,7 +12,7 @@ import (
 func init() {
     m := martini.Classic()
     m.Use(render.Renderer())
-    m.Use(services.EnforceAuth)
+    m.Use(services.EnforceAuth("/auth/"))
 
     m.Group("/api", func(r martini.Router) {
         r.Group("/user", func(sr martini.Router) {
@@ -46,6 +46,11 @@ func init() {
     m.Group("/_cron", func(r martini.Router) {
         r.Get("/bank-orders/", services.ExecuteBankOrders).Name("Cron:executeBankOrders")
         r.Get("/tag-values/", services.FetchLatestTagValues).Name("Cron:fetchLatestTagValues")
+    })
+
+    m.Group("/auth", func(r martini.Router) {
+        r.Get("/login/", login).Name("Auth:Login")
+        r.Get("/logout/", logout).Name("Auth:Logout")
     })
 
     http.Handle("/", m)

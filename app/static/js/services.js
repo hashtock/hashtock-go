@@ -18,7 +18,7 @@ hashtockServices.factory('TagValues', ['$resource', function($resource){
 
 hashtockServices.factory('User', ['$resource', function($resource){
     return $resource('/api/user/', {}, {
-        query: {method:'GET', isArray:false}
+        get: {method:'GET', isArray:false}
     });
 }]);
 

@@ -1,5 +1,5 @@
 application: hashtock
-version: 1-1
+version: 1-2
 runtime: go
 api_version: go1
 
@@ -18,6 +18,9 @@ handlers:
 - url: /api/.*
   script: _go_app
   login: required
+
+- url: /auth/.*
+  script: _go_app
 
 - url: /admin/.*
   script: _go_app

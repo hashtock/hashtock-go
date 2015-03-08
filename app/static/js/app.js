@@ -37,7 +37,23 @@ hashtockApp.config(['$routeProvider',
     }
 ]);
 
+hashtockApp.run(function ($rootScope, $location, User) {
+    $rootScope.$on('$routeChangeStart', function () {
+        if ($rootScope.loggedIn) {
+            return;
+        }
+
+        User.get(function(user){
+            if (user.id === undefined) {
+                window.location = "/auth/login/?continue=" + encodeURIComponent($location.absUrl());
+            } else {
+                $rootScope.loggedIn = true;
+            }
+        });
+    });
+});
+
 hashtockApp.config(['$resourceProvider', function($resourceProvider) {
-  // Don't strip trailing slashes from calculated URLs
-  $resourceProvider.defaults.stripTrailingSlashes = false;
+    // Don't strip trailing slashes from calculated URLs
+    $resourceProvider.defaults.stripTrailingSlashes = false;
 }]);
