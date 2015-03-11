@@ -99,7 +99,7 @@ func CancelOrder(req *http.Request, order_uuid string) (err error) {
     }
 
     if !order.isCancellable() {
-        err = core.NewBadRequestError("Order can not be canceled any more")
+        err = core.NewBadRequestError("Order can not be cancelled any more")
         return
     }
 

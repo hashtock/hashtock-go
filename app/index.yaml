@@ -20,33 +20,7 @@ indexes:
   - name: Complete
   - name: UserID
   - name: CreatedAt
-
-- kind: Order
-  properties:
-  - name: Complete
-  - name: UserID
-  - name: CreatedAt
     direction: desc
-
-- kind: Order
-  properties:
-  - name: Complete
-  - name: UserID
-  - name: CreatedAt
-    direction: desc
-  - name: ExecutedAt
-    direction: desc
-
-- kind: TagShare
-  properties:
-  - name: UserID
-  - name: Quantity
-
-- kind: TagShare
-  properties:
-  - name: UserID
-  - name: Quantity
-  - name: HashTag
 
 - kind: TagShare
   properties:
