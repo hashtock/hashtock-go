@@ -4,6 +4,7 @@ import (
     "errors"
     "fmt"
     "net/http"
+    "time"
 
     "appengine"
     "appengine/datastore"
@@ -16,17 +17,27 @@ func orderKey(ctx appengine.Context, order_uuid string) (key *datastore.Key) {
     return datastore.NewKey(ctx, orderKind, order_uuid, 0, nil)
 }
 
-func newOrderSystem(req *http.Request) (order OrderSystem, err error) {
-    var profile *Profile
+func newOrderSystem(req *http.Request, base_order OrderBase) (order OrderSystem, err error) {
+    var (
+        profile *Profile
+        hashTag *HashTag
+    )
 
     if profile, err = GetProfile(req); err != nil {
         return
     }
 
+    if hashTag, err = GetHashTag(req, base_order.HashTag); err != nil {
+        return
+    }
+
     order = OrderSystem{
-        UUID:     uuid.New(),
-        UserID:   profile.UserID,
-        Complete: false,
+        UUID:       uuid.New(),
+        UserID:     profile.UserID,
+        Complete:   false,
+        CreatedAt:  time.Now(),
+        Resolution: PENDING,
+        Value:      base_order.Quantity * hashTag.Value,
     }
 
     return
@@ -38,7 +49,7 @@ func PlaceOrder(req *http.Request, base_order OrderBase) (order *Order, err erro
     }
 
     var system_order OrderSystem
-    if system_order, err = newOrderSystem(req); err != nil {
+    if system_order, err = newOrderSystem(req, base_order); err != nil {
         return
     }
 
@@ -114,7 +125,7 @@ func allOrdersQuery() (query *datastore.Query) {
 }
 
 func orderByCompletnessQuery(query *datastore.Query, complete bool) *datastore.Query {
-    return query.Filter("Complete =", complete)
+    return query.Filter("Complete =", complete).Order("-CreatedAt")
 }
 
 func executeOrderQuery(req *http.Request, query *datastore.Query) (orders []Order, err error) {
@@ -169,31 +180,34 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
     }
 
     if hashTag, err = GetHashTag(req, order.HashTag); err != nil {
+        order.markAsComplete(req, ERROR, "")
         return
     }
 
     if profile, err = getProfileForUserId(req, order.UserID); err != nil {
+        order.markAsComplete(req, ERROR, "")
         return
     }
 
     if tagShare, err = getOrCreateTagShare(req, profile, order.HashTag); err != nil {
+        order.markAsComplete(req, ERROR, "")
         return
     }
 
-    transaction_value := hashTag.Value * order.Quantity
-
     if order.isBuy() {
-        if profile.Founds < transaction_value {
+        if profile.Founds < order.Value {
+            order.markAsComplete(req, FAILURE, "Not enough founds")
             msg := fmt.Sprintf("User %v does not have enough founds to complete %v", profile, order)
             return core.NewBadRequestError(msg)
         }
 
         if hashTag.InBank < order.Quantity {
+            order.markAsComplete(req, FAILURE, "Not enough shares in bank")
             msg := fmt.Sprintf("Bank does not have enough shares to complete %v", order)
             return core.NewBadRequestError(msg)
         }
 
-        profile.Founds -= transaction_value
+        profile.Founds -= order.Value
         tagShare.Quantity += order.Quantity
         hashTag.InBank -= order.Quantity
 
@@ -202,11 +216,12 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
         hashTag.Put(req)
     } else {
         if tagShare.Quantity < order.Quantity {
+            order.markAsComplete(req, FAILURE, "Not enough shares in users possession")
             msg := fmt.Sprintf("User %v does not have enough shares to complete %v", profile, order)
             return core.NewBadRequestError(msg)
         }
 
-        profile.Founds += transaction_value
+        profile.Founds += order.Value
         tagShare.Quantity -= order.Quantity
         hashTag.InBank += order.Quantity
 
@@ -219,7 +234,7 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
         }
     }
 
-    order.markAsComplete(req)
+    order.markAsComplete(req, SUCCESS, "")
 
     return
 }

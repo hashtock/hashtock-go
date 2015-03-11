@@ -6,6 +6,7 @@ var hashtockApp = angular.module('hashtockApp', [
     'ngRoute',
 
     'nvd3',
+    'angularMoment',
 
     'hashtockControllers',
     'hashtockServices',

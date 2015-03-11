@@ -12,10 +12,12 @@ package gaetestsuite
 import (
     "bytes"
     "encoding/json"
+    "fmt"
     "io"
     "log"
     "net/http"
     "net/http/httptest"
+    "sort"
     "testing"
     "time"
 
@@ -44,6 +46,15 @@ type testStruct struct {
 
 type Json map[string]interface{}
 type JsonList []Json
+
+func (j Json) keys() []string {
+    keys := make([]string, 0)
+
+    for key := range j {
+        keys = append(keys, key)
+    }
+    return keys
+}
 
 func (g *GAETestSuite) SetupSuite() {
     var err error
@@ -201,6 +212,26 @@ func (g *GAETestSuite) JsonResponceToListOfStringMap(rec *httptest.ResponseRecor
         g.T().Fatalf("Could not unmarshal list: %s", rec.Body.String())
     }
     return json_map
+}
+
+func (g *GAETestSuite) JsonEqual(expected, actual Json) {
+    expectedKeys := sort.StringSlice(expected.keys())
+    expectedKeys.Sort()
+    actualKeys := sort.StringSlice(actual.keys())
+    actualKeys.Sort()
+
+    g.Equal(expectedKeys, actualKeys)
+    for _, key := range expectedKeys {
+        g.Equal(expected[key], actual[key], fmt.Sprintf("Comparing key %s", key))
+    }
+    g.Equal(expected, actual)
+}
+
+func (g *GAETestSuite) JsonListEqual(expectedList, actualList JsonList) {
+    g.Equal(len(expectedList), len(actualList))
+    for i, expected := range expectedList {
+        g.JsonEqual(expected, actualList[i])
+    }
 }
 
 func (g *GAETestSuite) TestCleanUp() {

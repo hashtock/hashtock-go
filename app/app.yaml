@@ -1,5 +1,5 @@
 application: hashtock
-version: 1-2
+version: 1-3
 runtime: go
 api_version: go1
 

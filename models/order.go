@@ -4,11 +4,21 @@ import (
     "fmt"
     "net/http"
     "strings"
+    "time"
 
     "appengine"
     "appengine/datastore"
 
     "github.com/hashtock/hashtock-go/core"
+)
+
+type OrderResolution string
+
+const (
+    PENDING OrderResolution = ""
+    SUCCESS                 = "success"
+    FAILURE                 = "failure"
+    ERROR                   = "error"
 )
 
 // User part of Order
@@ -22,9 +32,14 @@ type OrderBase struct {
 // System fields regarding Order
 // Read only for users
 type OrderSystem struct {
-    UUID     string `json:"uuid"`
-    UserID   string `json:"user_id"`
-    Complete bool   `json:"complete"`
+    UUID       string          `json:"uuid"`
+    UserID     string          `json:"user_id"`
+    Complete   bool            `json:"complete"`
+    Value      float64         `json:"value"`
+    CreatedAt  time.Time       `json:"created_at"`
+    ExecutedAt time.Time       `json:"executed_at"`
+    Resolution OrderResolution `json:"resolution"`
+    Notes      string          `json:"notes"`
 }
 
 type Order struct {
@@ -99,7 +114,10 @@ func (o *Order) isBuy() bool {
     return o.Action == actionBuy
 }
 
-func (o *Order) markAsComplete(req *http.Request) (err error) {
+func (o *Order) markAsComplete(req *http.Request, status OrderResolution, notes string) (err error) {
     o.Complete = true
+    o.Resolution = status
+    o.Notes = notes
+    o.ExecutedAt = time.Now()
     return o.Put(req)
 }

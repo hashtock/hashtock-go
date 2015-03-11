@@ -20,7 +20,7 @@ func GetProfileShares(req *http.Request, profile *Profile) (shares []TagShare, e
 
     q := datastore.NewQuery(tagShareKind)
     q = q.Filter("UserID =", profile.UserID).Filter("Quantity >=", 0.0)
-    q = q.Order("Quantity").Order("HashTag")
+    q = q.Order("-Quantity").Order("HashTag") // Order by quantity forced by GAE :(
     _, err = q.GetAll(ctx, &shares)
     return
 }

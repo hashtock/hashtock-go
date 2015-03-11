@@ -27,12 +27,11 @@ func EnforceAuth(exceptions ...string) martini.Handler {
             }
         }
 
-        if !isException && req.Header.Get("X-AppEngine-Cron") == "" {
-            if _, err := models.GetProfile(req); err != nil {
-                hErr := core.NewForbiddenError()
-                r.JSON(hErr.ErrCode(), hErr)
-                return
-            }
+        _, err := models.GetProfile(req)
+        if !isException && req.Header.Get("X-AppEngine-Cron") == "" && err != nil {
+            hErr := core.NewForbiddenError()
+            r.JSON(hErr.ErrCode(), hErr)
+            return
         }
         c.Next()
     }

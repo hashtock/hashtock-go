@@ -4,6 +4,7 @@ package services_test
 
 import (
     "net/http"
+    "time"
 
     "github.com/hashtock/hashtock-go/gaetestsuite"
     "github.com/hashtock/hashtock-go/models"
@@ -32,19 +33,25 @@ func (s *ServicesTestSuite) TestPlaceTransactionOrderWithBank() {
     }
 
     uuid := json_body["uuid"]
+    created := json_body["created_at"]
     expected := gaetestsuite.Json{
-        "action":     "buy",
-        "hashtag":    "Tag1",
-        "quantity":   1.00,
-        "user_id":    s.User.Email,
-        "bank_order": true,
-        "complete":   false,
-        "uuid":       uuid.(string),
+        "action":      "buy",
+        "hashtag":     "Tag1",
+        "quantity":    1.00,
+        "user_id":     s.User.Email,
+        "bank_order":  true,
+        "complete":    false,
+        "value":       1.00,
+        "uuid":        uuid.(string),
+        "created_at":  created,
+        "executed_at": "0001-01-01T00:00:00Z", // Not executed yet
+        "resolution":  "",
+        "notes":       "",
     }
     order_in_db, err := models.GetOrder(req, uuid.(string))
     s.NoError(err)
     s.NotNil(order_in_db)
-    s.Equal(expected, json_body)
+    s.JsonEqual(expected, json_body)
 }
 
 func (s *ServicesTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
@@ -84,28 +91,39 @@ func (s *ServicesTestSuite) TestGetOrderDetails() {
             Quantity:  1.00,
         },
         OrderSystem: models.OrderSystem{
-            UUID:     "FAKE-UUID",
-            UserID:   s.User.Email,
-            Complete: false,
+            UUID:       "FAKE-UUID",
+            UserID:     s.User.Email,
+            Complete:   false,
+            Value:      1,
+            CreatedAt:  time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
+            ExecutedAt: time.Time{},
+            Resolution: models.PENDING,
+            Notes:      "Some note",
         },
     }
+    time.Local = time.UTC
     order.Put(req)
 
     rec := s.Do(req)
     json_body := s.JsonResponceToStringMap(rec)
 
     expected := gaetestsuite.Json{
-        "action":     "buy",
-        "hashtag":    "Tag1",
-        "quantity":   1.00,
-        "user_id":    s.User.Email,
-        "bank_order": true,
-        "complete":   false,
-        "uuid":       "FAKE-UUID",
+        "action":      "buy",
+        "hashtag":     "Tag1",
+        "quantity":    1.00,
+        "user_id":     s.User.Email,
+        "bank_order":  true,
+        "complete":    false,
+        "value":       1.00,
+        "uuid":        "FAKE-UUID",
+        "created_at":  "2015-02-04T19:30:00Z",
+        "executed_at": "0001-01-01T00:00:00Z", // Not executed yet
+        "resolution":  "",
+        "notes":       "Some note",
     }
 
     s.Equal(http.StatusOK, rec.Code)
-    s.Equal(expected, json_body)
+    s.JsonEqual(expected, json_body)
 }
 
 func (s *ServicesTestSuite) TestGetOrderDifferentUser() {
@@ -192,6 +210,7 @@ func (s *ServicesTestSuite) TestCancelCompetedOrder() {
 
 func (s *ServicesTestSuite) TestCurrentOrders() {
     req := s.NewJsonRequest("GET", "/api/order/", nil, s.User)
+    time.Local = time.UTC
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
     tag.Put(req)
@@ -206,14 +225,19 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
     order_1 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
-            UUID:     "pending-1",
-            UserID:   s.User.Email,
-            Complete: false,
+            UUID:       "pending-1",
+            UserID:     s.User.Email,
+            Complete:   false,
+            Value:      1,
+            CreatedAt:  time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
+            ExecutedAt: time.Time{},
         },
     }
     order_1.Put(req)
 
     order_1.UUID = "pending-2"
+    order_1.CreatedAt = time.Date(2015, time.February, 04, 19, 31, 0, 0, time.UTC)
+    order_1.ExecutedAt = time.Time{}
     order_1.Put(req)
 
     order_2 := models.Order{
@@ -241,28 +265,38 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
 
     expected := gaetestsuite.JsonList{
         gaetestsuite.Json{
-            "action":     "buy",
-            "hashtag":    "Tag1",
-            "quantity":   1.00,
-            "user_id":    s.User.Email,
-            "bank_order": true,
-            "complete":   false,
-            "uuid":       "pending-1",
+            "action":      "buy",
+            "hashtag":     "Tag1",
+            "quantity":    1.00,
+            "user_id":     s.User.Email,
+            "bank_order":  true,
+            "complete":    false,
+            "uuid":        "pending-2",
+            "value":       1.00,
+            "created_at":  "2015-02-04T19:31:00Z",
+            "executed_at": "0001-01-01T00:00:00Z", // Not executed yet
+            "resolution":  "",
+            "notes":       "",
         },
         gaetestsuite.Json{
-            "action":     "buy",
-            "hashtag":    "Tag1",
-            "quantity":   1.00,
-            "user_id":    s.User.Email,
-            "bank_order": true,
-            "complete":   false,
-            "uuid":       "pending-2",
+            "action":      "buy",
+            "hashtag":     "Tag1",
+            "quantity":    1.00,
+            "user_id":     s.User.Email,
+            "bank_order":  true,
+            "complete":    false,
+            "uuid":        "pending-1",
+            "value":       1.00,
+            "created_at":  "2015-02-04T19:30:00Z",
+            "executed_at": "0001-01-01T00:00:00Z", // Not executed yet
+            "resolution":  "",
+            "notes":       "",
         },
     }
 
     s.Equal(http.StatusOK, rec.Code)
     s.Len(json_body, 2)
-    s.Equal(expected, json_body)
+    s.JsonListEqual(expected, json_body)
 }
 
 func (s *ServicesTestSuite) TestHistoricOrders() {
@@ -281,22 +315,33 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
     order_1 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
-            UUID:     "complete-1",
-            UserID:   s.User.Email,
-            Complete: true,
+            UUID:       "complete-1",
+            UserID:     s.User.Email,
+            Complete:   true,
+            Value:      1.0,
+            CreatedAt:  time.Date(2015, time.February, 04, 19, 00, 0, 0, time.UTC),
+            ExecutedAt: time.Date(2015, time.February, 04, 19, 15, 0, 0, time.UTC),
+            Resolution: models.SUCCESS,
         },
     }
     order_1.Put(req)
 
     order_1.UUID = "complete-2"
+    order_1.CreatedAt = time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC)
+    order_1.ExecutedAt = time.Date(2015, time.February, 04, 19, 45, 0, 0, time.UTC)
+    order_1.Resolution = models.FAILURE
+    order_1.Notes = "some reason"
     order_1.Put(req)
 
     order_2 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
-            UUID:     "pending-1",
-            UserID:   s.User.Email,
-            Complete: false,
+            UUID:       "pending-1",
+            UserID:     s.User.Email,
+            Complete:   false,
+            Value:      1.0,
+            CreatedAt:  time.Date(2015, time.February, 04, 19, 00, 0, 0, time.UTC),
+            ExecutedAt: time.Time{},
         },
     }
     order_2.Put(req)
@@ -304,9 +349,12 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
     order_3 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
-            UUID:     "complete-3",
-            UserID:   "some user",
-            Complete: true,
+            UUID:       "complete-3",
+            UserID:     "some user",
+            Complete:   true,
+            Value:      1.0,
+            CreatedAt:  time.Date(2015, time.February, 04, 19, 31, 0, 0, time.UTC),
+            ExecutedAt: time.Date(2015, time.February, 04, 19, 46, 0, 0, time.UTC),
         },
     }
     order_3.Put(req)
@@ -316,26 +364,36 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
 
     expected := gaetestsuite.JsonList{
         gaetestsuite.Json{
-            "action":     "buy",
-            "hashtag":    "Tag1",
-            "quantity":   1.00,
-            "user_id":    s.User.Email,
-            "bank_order": true,
-            "complete":   true,
-            "uuid":       "complete-1",
+            "action":      "buy",
+            "hashtag":     "Tag1",
+            "quantity":    1.00,
+            "user_id":     s.User.Email,
+            "bank_order":  true,
+            "complete":    true,
+            "value":       1.0,
+            "uuid":        "complete-2",
+            "created_at":  "2015-02-04T19:30:00Z",
+            "executed_at": "2015-02-04T19:45:00Z",
+            "resolution":  "failure",
+            "notes":       "some reason",
         },
         gaetestsuite.Json{
-            "action":     "buy",
-            "hashtag":    "Tag1",
-            "quantity":   1.00,
-            "user_id":    s.User.Email,
-            "bank_order": true,
-            "complete":   true,
-            "uuid":       "complete-2",
+            "action":      "buy",
+            "hashtag":     "Tag1",
+            "quantity":    1.00,
+            "user_id":     s.User.Email,
+            "bank_order":  true,
+            "complete":    true,
+            "value":       1.0,
+            "uuid":        "complete-1",
+            "created_at":  "2015-02-04T19:00:00Z",
+            "executed_at": "2015-02-04T19:15:00Z",
+            "resolution":  "success",
+            "notes":       "",
         },
     }
 
     s.Equal(http.StatusOK, rec.Code)
     s.Len(json_body, 2)
-    s.Equal(expected, json_body)
+    s.JsonListEqual(expected, json_body)
 }

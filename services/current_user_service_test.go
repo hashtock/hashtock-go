@@ -38,14 +38,18 @@ func (s *ServicesTestSuite) TestProfileExistForLoggedInUser() {
 }
 
 func (s *ServicesTestSuite) TestGetUsersTags() {
-    req := s.NewJsonRequest("GET", "/api/user/tags/", nil, s.User)
+    req := s.NewJsonRequest("GET", "/api/portfolio/", nil, s.User)
 
     t1 := models.TagShare{HashTag: "Tag1", Quantity: 10.5, UserID: s.User.Email}
-    t2 := models.TagShare{HashTag: "Tag2", Quantity: 0.20, UserID: s.User.Email}
-    t3 := models.TagShare{HashTag: "Tag1", Quantity: 1.00, UserID: "OtherID"}
+    t2 := models.TagShare{HashTag: "bTag", Quantity: 0.20, UserID: s.User.Email}
+    t3 := models.TagShare{HashTag: "Tag3", Quantity: 1.20, UserID: s.User.Email}
+    t4 := models.TagShare{HashTag: "aTag", Quantity: 0.20, UserID: s.User.Email}
+    t5 := models.TagShare{HashTag: "Tag1", Quantity: 1.00, UserID: "OtherID"}
     t1.Put(req)
     t2.Put(req)
     t3.Put(req)
+    t4.Put(req)
+    t5.Put(req)
 
     rec := s.Do(req)
     json_body := s.JsonResponceToListOfStringMap(rec)
@@ -55,15 +59,21 @@ func (s *ServicesTestSuite) TestGetUsersTags() {
         gaetestsuite.Json{
             "hashtag":  "Tag1",
             "quantity": 10.5,
-            "user_id":  s.User.Email,
         },
         gaetestsuite.Json{
-            "hashtag":  "Tag2",
+            "hashtag":  "Tag3",
+            "quantity": 1.2,
+        },
+        gaetestsuite.Json{
+            "hashtag":  "aTag",
             "quantity": 0.2,
-            "user_id":  s.User.Email,
+        },
+        gaetestsuite.Json{
+            "hashtag":  "bTag",
+            "quantity": 0.2,
         },
     }
 
     s.Equal(http.StatusOK, rec.Code)
-    s.Equal(expected, json_body)
+    s.JsonListEqual(expected, json_body)
 }

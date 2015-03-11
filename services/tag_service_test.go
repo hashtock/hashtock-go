@@ -122,28 +122,30 @@ func (s *ServicesTestSuite) TestValuesForTag() {
     }
     tag.Put(req)
 
+    time_1 := time.Now().Add(time.Minute * -2).Truncate(time.Second)
     tagValue := models.HashTagValue{
         HashTag: "TestTag",
         Value:   30,
-        Date:    time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
+        Date:    time_1,
     }
     tagValue.Put(req)
 
+    time_2 := time.Now().Add(time.Minute * -1).Truncate(time.Second)
     tagValue2 := models.HashTagValue{
         HashTag: "TestTag",
         Value:   29,
-        Date:    time.Date(2015, time.February, 04, 19, 15, 0, 0, time.UTC),
+        Date:    time_2,
     }
     tagValue2.Put(req)
 
     expected := gaetestsuite.JsonList{
         gaetestsuite.Json{
-            "value": 29,
-            "date":  "2015-02-04T19:15:00Z",
+            "value": 30,
+            "date":  time_1.Format(time.RFC3339),
         },
         gaetestsuite.Json{
-            "value": 30,
-            "date":  "2015-02-04T19:30:00Z",
+            "value": 29,
+            "date":  time_2.Format(time.RFC3339),
         },
     }
 
