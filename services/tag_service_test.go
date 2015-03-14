@@ -3,6 +3,7 @@
 package services_test
 
 import (
+    "fmt"
     "net/http"
     "time"
 
@@ -154,4 +155,95 @@ func (s *ServicesTestSuite) TestValuesForTag() {
 
     s.Equal(http.StatusOK, rec.Code)
     s.Equal(expected, json_body)
+}
+
+func (s *ServicesTestSuite) TestValuesForTagSamplingInvalid() {
+    req := s.NewJsonRequest("GET", "/api/tag/TestTag/values/?days=2", nil, s.User)
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToStringMap(rec)
+
+    expected := gaetestsuite.Json{
+        "code":  400,
+        "error": "Duration 2 not supported",
+    }
+
+    s.Equal(http.StatusBadRequest, rec.Code)
+    s.Equal(expected, json_body)
+}
+
+func (s *ServicesTestSuite) TestValuesForTagSamplingValid() {
+    validDurations := []string{
+        "", // 1
+        "1", "7", "14", "30",
+    }
+
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  100.0,
+    }
+    tag.Put(s.DummyRequest(s.User))
+
+    for _, duration := range validDurations {
+        req := s.NewJsonRequest("GET", fmt.Sprintf("/api/tag/TestTag/values/?days=%v", duration), nil, s.User)
+
+        rec := s.Do(req)
+        s.Equal(http.StatusOK, rec.Code)
+    }
+}
+
+func (s *ServicesTestSuite) TestValuesForTagSampling7Days() {
+    req := s.NewJsonRequest("GET", "/api/tag/TestTag/values/?days=7", nil, s.User)
+
+    tag := models.HashTag{
+        HashTag: "TestTag",
+        Value:   1,
+        InBank:  100.0,
+    }
+    tag.Put(req)
+
+    tagValuesOffsets := map[time.Duration]float64{
+        -7*24*time.Hour + 5*time.Minute: 1,
+        -6*24*time.Hour + 1*time.Hour:   1,
+        -6*24*time.Hour + 2*time.Hour:   2,
+        -5*24*time.Hour + 1*time.Hour:   2,
+        -2*time.Hour + 15*time.Minute:   4,
+        -1*time.Hour + 30*time.Minute:   6,
+    }
+
+    for offset, value := range tagValuesOffsets {
+        tagValue := models.HashTagValue{
+            HashTag: "TestTag",
+            Value:   value,
+            Date:    time.Now().Add(offset),
+        }
+        tagValue.Put(req)
+    }
+
+    rec := s.Do(req)
+    json_body := s.JsonResponceToListOfStringMap(rec)
+
+    expected := gaetestsuite.JsonList{
+        gaetestsuite.Json{
+            "value": 1,
+            "date":  time.Now().Add(-7 * 24 * time.Hour).Truncate(24 * time.Hour).Format(time.RFC3339),
+        },
+        gaetestsuite.Json{
+            "value": (1 + 2) / 2.0,
+            "date":  time.Now().Add(-6 * 24 * time.Hour).Truncate(24 * time.Hour).Format(time.RFC3339),
+        },
+        gaetestsuite.Json{
+            "value": 2,
+            "date":  time.Now().Add(-5 * 24 * time.Hour).Truncate(24 * time.Hour).Format(time.RFC3339),
+        },
+        gaetestsuite.Json{
+            "value": (6 + 4) / 2.0,
+            "date":  time.Now().Truncate(24 * time.Hour).Format(time.RFC3339),
+        },
+    }
+
+    s.Equal(http.StatusOK, rec.Code)
+    s.Len(json_body, 4)
+    s.JsonListEqual(expected, json_body)
 }

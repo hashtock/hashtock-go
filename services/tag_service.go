@@ -2,13 +2,34 @@ package services
 
 import (
     "encoding/json"
+    "fmt"
     "net/http"
+    "time"
 
     "github.com/go-martini/martini"
     "github.com/martini-contrib/render"
 
     "github.com/hashtock/hashtock-go/core"
     "github.com/hashtock/hashtock-go/models"
+)
+
+const (
+    lastDay      = "1"
+    lastWeek     = "7"
+    lastTwoWeeks = "14"
+    lastMonth    = "30"
+)
+
+var (
+    showLast = map[string]struct {
+        sample   time.Duration
+        duration time.Duration
+    }{
+        lastDay:      {0, 24 * time.Hour},
+        lastWeek:     {24 * time.Hour, 7 * 24 * time.Hour},
+        lastTwoWeeks: {24 * time.Hour, 14 * 24 * time.Hour},
+        lastMonth:    {24 * time.Hour, 30 * 24 * time.Hour},
+    }
 )
 
 // List of all tags with bank values
@@ -84,10 +105,29 @@ func SetTagValue(req *http.Request, params martini.Params, r render.Render) {
 func TagValues(req *http.Request, params martini.Params, r render.Render) {
     hashTagName := params["tag"]
 
-    tagValues, err := models.GetHashTagValues(req, hashTagName)
+    queryValues := req.URL.Query()
+    days := lastDay
+    if daysStr := queryValues.Get("days"); daysStr != "" {
+        days = daysStr
+    }
+
+    def, ok := showLast[days]
+    if !ok {
+        herr := core.NewBadRequestError(fmt.Sprintf("Duration %s not supported", days))
+        r.JSON(core.ErrToErrorer(herr))
+        return
+    }
+
+    since := time.Now().Add(-def.duration)
+    tagValues, err := models.GetHashTagValues(req, hashTagName, since, def.sample)
     if err != nil {
         r.JSON(core.ErrToErrorer(err))
         return
+    }
+
+    // Subtract 1h to make room for sampling error
+    if len(tagValues) > 0 && def.sample != 0 && time.Since(tagValues[0].Date) < def.duration {
+        tagValues = tagValues[:0]
     }
 
     r.JSON(http.StatusOK, tagValues)

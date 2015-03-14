@@ -12,7 +12,7 @@ hashtockServices.factory('Tag', ['$resource', function($resource){
 
 hashtockServices.factory('TagValues', ['$resource', function($resource){
     return $resource('/api/tag/:tag/values/', {}, {
-        query: {method:'GET', params:{tag:'@hashtag'}, isArray:true}
+        query: {method:'GET', params:{tag:'@hashtag', days:undefined}, isArray:true}
     });
 }]);
 

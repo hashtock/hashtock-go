@@ -18,6 +18,12 @@ type HashTagValue struct {
     Date    time.Time `json:"date"`
 }
 
+type byDate []HashTagValue
+
+func (a byDate) Len() int           { return len(a) }
+func (a byDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byDate) Less(i, j int) bool { return a[i].Date.Before(a[j].Date) }
+
 func (h *HashTagValue) key(ctx appengine.Context) (key *datastore.Key) {
     return hashTagValueKey(ctx, h.HashTag, h.Date)
 }
