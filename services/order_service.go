@@ -23,7 +23,11 @@ func ActiveOrders(req *http.Request, r render.Render) {
 }
 
 func CompletedOrder(req *http.Request, r render.Render) {
-    orders, err := models.GetCompletedUserOrders(req)
+    queryValues := req.URL.Query()
+    tag := queryValues.Get("tag")
+    resolution := queryValues.Get("resolution")
+
+    orders, err := models.GetCompletedUserOrders(req, tag, resolution)
 
     if err != nil {
         r.JSON(core.ErrToErrorer(err))

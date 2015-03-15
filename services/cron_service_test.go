@@ -25,7 +25,7 @@ func (s *ServicesTestSuite) TestExecuteBankBuyOrders() {
     // Initial state check
     profile, _ := models.GetProfile(user_req)
     activeOrders, _ := models.GetActiveUserOrders(user_req)
-    completedOrders, _ := models.GetCompletedUserOrders(user_req)
+    completedOrders, _ := models.GetCompletedUserOrders(user_req, "", "")
     shares, _ := models.GetProfileShares(user_req, profile)
     s.Len(activeOrders, 1)
     s.Len(completedOrders, 0)
@@ -52,7 +52,7 @@ func (s *ServicesTestSuite) TestExecuteBankBuyOrders() {
     // State after
     profileAfter, _ := models.GetProfile(user_req)
     activeOrdersAfter, _ := models.GetActiveUserOrders(user_req)
-    completedOrdersAfter, _ := models.GetCompletedUserOrders(user_req)
+    completedOrdersAfter, _ := models.GetCompletedUserOrders(user_req, "", "")
     sharesAfter, _ := models.GetProfileShares(user_req, profile)
     s.Len(activeOrdersAfter, 0)
     s.Len(completedOrdersAfter, 1)
@@ -81,7 +81,7 @@ func (s *ServicesTestSuite) TestExecuteBankSellOrders() {
     // Initial state check
     profile, _ := models.GetProfile(user_req)
     activeOrders, _ := models.GetActiveUserOrders(user_req)
-    completedOrders, _ := models.GetCompletedUserOrders(user_req)
+    completedOrders, _ := models.GetCompletedUserOrders(user_req, "", "")
     shares, _ := models.GetProfileShares(user_req, profile)
     s.Len(activeOrders, 1)
     s.Len(completedOrders, 0)
@@ -109,7 +109,7 @@ func (s *ServicesTestSuite) TestExecuteBankSellOrders() {
     // State after
     profileAfter, _ := models.GetProfile(user_req)
     activeOrdersAfter, _ := models.GetActiveUserOrders(user_req)
-    completedOrdersAfter, _ := models.GetCompletedUserOrders(user_req)
+    completedOrdersAfter, _ := models.GetCompletedUserOrders(user_req, "", "")
     sharesAfter, _ := models.GetProfileShares(user_req, profile)
     hashTagAfter, _ := models.GetHashTag(user_req, "Tag1")
     s.Len(activeOrdersAfter, 0)

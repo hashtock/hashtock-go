@@ -397,3 +397,55 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
     s.Len(json_body, 2)
     s.JsonListEqual(expected, json_body)
 }
+
+func (s *ServicesTestSuite) TestHistoricOrdersFilters() {
+    dReq := s.DummyRequest(s.User)
+
+    tags := []string{"Tag1", "Other"}
+    for _, tagName := range tags {
+        tag := models.HashTag{HashTag: tagName, Value: 1.00, InBank: 1.00}
+        tag.Put(dReq)
+    }
+
+    orderForTag := []string{"Tag1", "Tag1", "Tag1", "Tag1", "Other", "Tag1"}
+    sysOrders := []models.OrderSystem{
+        models.OrderSystem{UUID: "complete-1", Complete: true, Resolution: models.SUCCESS, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 01, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "complete-2", Complete: true, Resolution: models.ERROR, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 02, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "complete-3", Complete: true, Resolution: models.FAILURE, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 03, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "pending--1", Complete: false, Resolution: models.PENDING, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 04, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "other-succ", Complete: true, Resolution: models.SUCCESS, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 05, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "OTHER-USER", Complete: true, Resolution: models.SUCCESS, UserID: "stranger", CreatedAt: time.Date(2015, time.February, 04, 01, 00, 0, 0, time.UTC)},
+    }
+
+    for i, sysOrder := range sysOrders {
+        order := models.Order{
+            OrderBase:   models.OrderBase{HashTag: orderForTag[i]},
+            OrderSystem: sysOrder,
+        }
+        err := order.Put(dReq)
+        s.NoError(err)
+    }
+
+    // Test Matrix
+    filters := []string{"tag=Tag1", "resolution=success", "resolution=error", "tag=Tag1&resolution=success"}
+    expected := [][]string{
+        []string{"complete-3", "complete-2", "complete-1"},
+        []string{"other-succ", "complete-1"},
+        []string{"complete-2"},
+        []string{"complete-1"},
+    }
+
+    for i, filter := range filters {
+        // Act
+        req := s.NewJsonRequest("GET", "/api/order/history/?"+filter, nil, s.User)
+        rec := s.Do(req)
+        json_body := s.JsonResponceToListOfStringMap(rec)
+
+        // Assert
+        s.Equal(http.StatusOK, rec.Code)
+        s.Len(json_body, len(expected[i]))
+        for j, order := range json_body {
+            s.Equal(order["uuid"], expected[i][j])
+        }
+    }
+}

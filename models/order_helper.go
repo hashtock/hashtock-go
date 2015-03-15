@@ -128,6 +128,17 @@ func orderByCompletnessQuery(query *datastore.Query, complete bool) *datastore.Q
     return query.Filter("Complete =", complete).Order("-CreatedAt")
 }
 
+func filterOrderQuery(query *datastore.Query, tag string, resolution string) *datastore.Query {
+    if tag != "" {
+        query = query.Filter("HashTag =", tag)
+    }
+
+    if resolution != "" {
+        query = query.Filter("Resolution =", resolution)
+    }
+    return query
+}
+
 func executeOrderQuery(req *http.Request, query *datastore.Query) (orders []Order, err error) {
     ctx := appengine.NewContext(req)
     _, err = query.GetAll(ctx, &orders)
@@ -147,7 +158,7 @@ func GetActiveUserOrders(req *http.Request) (orders []Order, err error) {
     return executeOrderQuery(req, query)
 }
 
-func GetCompletedUserOrders(req *http.Request) (orders []Order, err error) {
+func GetCompletedUserOrders(req *http.Request, tag string, resolution string) (orders []Order, err error) {
     var query *datastore.Query
     query, err = allUserOrdersQuery(req)
     if err != nil {
@@ -155,6 +166,7 @@ func GetCompletedUserOrders(req *http.Request) (orders []Order, err error) {
     }
 
     query = orderByCompletnessQuery(query, true)
+    query = filterOrderQuery(query, tag, resolution)
 
     return executeOrderQuery(req, query)
 }

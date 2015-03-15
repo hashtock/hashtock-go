@@ -53,6 +53,7 @@ hashtockControllers.controller('TagDetailCtrl',
         $scope.maxSharesToSell = $scope.share.quantity;
     });
     $scope.tag = Tag.get({tag: $routeParams.tag});
+    $scope.sucessfulOrders = Order.successful({tag: $routeParams.tag});
 
     $q.all([$scope.user.$promise, $scope.tag.$promise]).then(function(){
         var val = Math.floor(10 * $scope.user.founds / $scope.tag.value)/10;

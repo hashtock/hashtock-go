@@ -30,7 +30,8 @@
                                 <th role="columnheader">Action</th>
                                 <th role="columnheader">Tag</th>
                                 <th role="columnheader">Quantity</th>
-                                <th role="columnheader">Value</th>
+                                <th role="columnheader">Order Value</th>
+                                <th role="columnheader">Share Value</th>
                                 <th role="columnheader">Created</th>
                                 <th role="columnheader">Bank order</th>
                                 <th role="columnheader"></th>
@@ -41,7 +42,8 @@
                                 <th role="columnheader">Action</th>
                                 <th role="columnheader">Tag</th>
                                 <th role="columnheader">Quantity</th>
-                                <th role="columnheader">Value</th>
+                                <th role="columnheader">Order Value</th>
+                                <th role="columnheader">Share Value</th>
                                 <th role="columnheader">Created</th>
                                 <th role="columnheader">Bank order</th>
                                 <th role="columnheader"></th>
@@ -53,6 +55,7 @@
                                 <td>{{ order.hashtag }}</td>
                                 <td>{{ order.quantity }}</td>
                                 <td>{{ order.value }}</td>
+                                <td>{{ (order.value / order.quantity) | number : 2 }}</td>
                                 <td am-time-ago="order.created_at" title='{{ order.created_at | date:"yyyy-MM-dd H:mm" }}'></td>
                                 <td class="text-capitalize">{{ order.bank_order ? 'Yes' : 'No' }}</td>
                                 <td class="collapsed">
@@ -81,7 +84,8 @@
                                 <th role="columnheader">Action</th>
                                 <th role="columnheader">Tag</th>
                                 <th role="columnheader">Quantity</th>
-                                <th role="columnheader">Value</th>
+                                <th role="columnheader">Order Value</th>
+                                <th role="columnheader">Share Value</th>
                                 <th role="columnheader">Created</th>
                                 <th role="columnheader">Executed</th>
                                 <th role="columnheader">Status</th>
@@ -93,7 +97,8 @@
                                 <th role="columnheader">Action</th>
                                 <th role="columnheader">Tag</th>
                                 <th role="columnheader">Quantity</th>
-                                <th role="columnheader">Value</th>
+                                <th role="columnheader">Order Value</th>
+                                <th role="columnheader">Share Value</th>
                                 <th role="columnheader">Created</th>
                                 <th role="columnheader">Executed</th>
                                 <th role="columnheader">Status</th>
@@ -106,6 +111,7 @@
                                 <td>{{ order.hashtag }}</td>
                                 <td>{{ order.quantity }}</td>
                                 <td>{{ order.value }}</td>
+                                <td>{{ (order.value / order.quantity) | number : 2 }}</td>
                                 <td am-time-ago="order.created_at" title='{{ order.created_at | date:"yyyy-MM-dd H:mm" }}'></td>
                                 <td am-time-ago="order.executed_at" title='{{ order.executed_at | date:"yyyy-MM-dd H:mm" }}'></td>
                                 <td><span ng-class="{'label-success': order.resolution=='success', 'label-danger': order.resolution=='failure', 'label-warning': order.resolution=='error'}" class="label" title="{{ order.notes }}">{{ order.resolution }}</span></td>

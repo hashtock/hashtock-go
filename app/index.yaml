@@ -18,6 +18,23 @@ indexes:
 - kind: Order
   properties:
   - name: Complete
+  - name: HashTag
+  - name: Resolution
+  - name: UserID
+  - name: CreatedAt
+    direction: desc
+
+- kind: Order
+  properties:
+  - name: Complete
+  - name: HashTag
+  - name: UserID
+  - name: CreatedAt
+    direction: desc
+
+- kind: Order
+  properties:
+  - name: Complete
   - name: UserID
   - name: CreatedAt
     direction: desc
