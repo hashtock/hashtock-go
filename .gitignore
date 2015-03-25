@@ -27,4 +27,4 @@ _testmain.go
 *sublime*
 
 # Static
-app/static/vendor/*
+static/vendor/*

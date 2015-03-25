@@ -67,7 +67,13 @@ func NewHashTag(req *http.Request, r render.Render) {
         return
     }
 
-    new_tag, err := models.AddHashTag(req, tag)
+    profile, err := models.GetProfile(req)
+    if err != nil {
+        r.JSON(core.ErrToErrorer(err))
+        return
+    }
+
+    new_tag, err := models.AddHashTag(req, profile, tag)
     if err != nil {
         r.JSON(core.ErrToErrorer(err))
         return
@@ -93,7 +99,13 @@ func SetTagValue(req *http.Request, params martini.Params, r render.Render) {
         return
     }
 
-    tag, err := models.UpdateHashTagValue(req, hash_tag_name, updated_tag.Value)
+    profile, err := models.GetProfile(req)
+    if err != nil {
+        r.JSON(core.ErrToErrorer(err))
+        return
+    }
+
+    tag, err := models.UpdateHashTagValue(req, profile, hash_tag_name, updated_tag.Value)
     if err != nil {
         r.JSON(core.ErrToErrorer(err))
         return

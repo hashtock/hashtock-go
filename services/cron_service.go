@@ -6,8 +6,6 @@ import (
     "sync"
     "time"
 
-    "appengine"
-    "appengine/urlfetch"
     "github.com/hashtock/tracker/client"
     "github.com/martini-contrib/render"
 
@@ -37,7 +35,6 @@ func ExecuteBankOrders(req *http.Request, r render.Render) {
 
 //TODO(error): Refactor & Tests!
 func FetchLatestTagValues(req *http.Request, r render.Render) {
-    c := appengine.NewContext(req)
     secret, host, err := conf.TrackerSecretAndHost(req)
 
     if err != nil {
@@ -50,7 +47,6 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
     }
 
     tracker, _ := client.NewTrackerPlain(secret, host)
-    tracker.Client = urlfetch.Client(c)
 
     latestUpdate, err := models.LatestUpdateToHashTagValues(req)
     if err != nil {
@@ -66,7 +62,7 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
 
     tags := make(map[string]*models.HashTag, len(tagCountTrend))
     for _, tagCounts := range tagCountTrend {
-        tag, err := models.GetOrCreateHashTag(req, tagCounts.Name)
+        tag, err := models.GetOrCreateHashTag(req, nil, tagCounts.Name)
         if err != nil {
             log.Println("Could not deal with:", tagCounts.Name, "Because:", err)
             continue
@@ -88,7 +84,7 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
                 latestValue = float64(count.Count)
             }
 
-            tagValue.Put(req)
+            models.AddHashTagValue(req, tagValue)
         }
 
         if tags[tagCounts.Name].Value != latestValue {
@@ -103,8 +99,7 @@ func FetchLatestTagValues(req *http.Request, r render.Render) {
         wg.Add(1)
         go func(innerTag *models.HashTag) {
             defer wg.Done()
-            // ToDo: It would be safer to update only 1 field here
-            if _, err := models.UpdateHashTagValue(req, innerTag.HashTag, innerTag.Value); err != nil {
+            if _, err := models.UpdateHashTagValue(req, nil, innerTag.HashTag, innerTag.Value); err != nil {
                 log.Println("Could not update:", innerTag.HashTag, "Because:", err)
                 return
             }

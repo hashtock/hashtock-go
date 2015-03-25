@@ -1,34 +1,27 @@
 package models
 
 import (
-    "fmt"
     "net/http"
 
-    "appengine"
-    "appengine/datastore"
+    "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2/bson"
 
     "github.com/hashtock/hashtock-go/core"
 )
 
-func tagShareKey(ctx appengine.Context, hashTagName, userId string) (key *datastore.Key) {
-    share_id := fmt.Sprintf("%s-%s", hashTagName, userId)
-    return datastore.NewKey(ctx, tagShareKind, share_id, 0, nil)
-}
-
 func GetProfileShares(req *http.Request, profile *Profile) (shares []TagShare, err error) {
-    ctx := appengine.NewContext(req)
+    col := storage.Collection(TagShareCollectionName)
+    defer col.Database.Session.Close()
 
-    q := datastore.NewQuery(tagShareKind)
-    q = q.Filter("UserID =", profile.UserID).Filter("Quantity >=", 0.0)
-    q = q.Order("-Quantity").Order("HashTag") // Order by quantity forced by GAE :(
-    _, err = q.GetAll(ctx, &shares)
+    selector := bson.M{"user_id": profile.UserID}
+    err = col.Find(selector).Sort("hashtag").All(&shares)
     return
 }
 
 func GetProfileShareByTagName(req *http.Request, profile *Profile, hashTagName string) (tagShare *TagShare, err error) {
     tagShare, err = getOrCreateTagShare(req, profile, hashTagName)
 
-    if err == nil && tagShare.Quantity <= 0 {
+    if (err == nil && tagShare.Quantity <= 0) || err == mgo.ErrNotFound {
         tagShare = nil
         err = core.NewNotFoundError(http.StatusText(http.StatusNotFound))
     }
@@ -36,19 +29,19 @@ func GetProfileShareByTagName(req *http.Request, profile *Profile, hashTagName s
 }
 
 func getOrCreateTagShare(req *http.Request, profile *Profile, hashTagName string) (tagShare *TagShare, err error) {
-    ctx := appengine.NewContext(req)
+    col := storage.Collection(TagShareCollectionName)
+    defer col.Database.Session.Close()
 
-    key := tagShareKey(ctx, hashTagName, profile.UserID)
-
-    tagShare = new(TagShare)
-    err = datastore.Get(ctx, key, tagShare)
-    if err == datastore.ErrNoSuchEntity {
-        err = nil
-        tagShare = &TagShare{
-            HashTag: hashTagName,
-            UserID:  profile.UserID,
-        }
+    tagShare = &TagShare{
+        HashTag: hashTagName,
+        UserID:  profile.UserID,
     }
 
+    selector := bson.M{
+        "hashtag": hashTagName,
+        "user_id": profile.UserID,
+    }
+
+    err = col.Find(selector).One(&tagShare)
     return
 }

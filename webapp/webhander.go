@@ -1,18 +1,35 @@
-package app
+package webapp
 
 import (
     "net/http"
 
     "github.com/go-martini/martini"
+    "github.com/martini-contrib/oauth2"
     "github.com/martini-contrib/render"
+    "github.com/martini-contrib/sessions"
 
+    "github.com/hashtock/hashtock-go/conf"
+    "github.com/hashtock/hashtock-go/models"
     "github.com/hashtock/hashtock-go/services"
 )
 
-func init() {
+// ToDo: Propagate this instance of storage down to services and models
+func Handlers(cfg *conf.Config, storage *models.MgoStorage) http.Handler {
+    authCfg := cfg.GAuthConfig()
+
+    oauth2.PathLogin = "/auth/login/"
+    oauth2.PathLogout = "/auth/logout/"
+    oauth2.PathCallback = "/oauth2callback"
+
+    cookieStore := sessions.NewCookieStore([]byte(cfg.General.SessionSecret))
+
     m := martini.Classic()
+    m.Use(martini.Static("static", martini.StaticOptions{Prefix: "static"}))
+    m.Use(martini.Static("static", martini.StaticOptions{IndexFile: "index.html"}))
+    m.Use(sessions.Sessions(cfg.General.SessionKey, cookieStore))
+    m.Use(oauth2.Google(&authCfg))
     m.Use(render.Renderer())
-    m.Use(services.EnforceAuth("/auth/"))
+    m.Use(services.EnforceAuth(oauth2.PathLogin, "/auth/"))
 
     m.Group("/api", func(r martini.Router) {
         r.Group("/user", func(sr martini.Router) {
@@ -48,10 +65,5 @@ func init() {
         r.Get("/tag-values/", services.FetchLatestTagValues).Name("Cron:fetchLatestTagValues")
     })
 
-    m.Group("/auth", func(r martini.Router) {
-        r.Get("/login/", login).Name("Auth:Login")
-        r.Get("/logout/", logout).Name("Auth:Logout")
-    })
-
-    http.Handle("/", m)
+    return m
 }

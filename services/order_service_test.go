@@ -4,13 +4,19 @@ package services_test
 
 import (
     "net/http"
+    "testing"
     "time"
 
-    "github.com/hashtock/hashtock-go/gaetestsuite"
+    "github.com/stretchr/testify/assert"
+
     "github.com/hashtock/hashtock-go/models"
+    "github.com/hashtock/hashtock-go/test_tools"
 )
 
-func (s *ServicesTestSuite) TestPlaceTransactionOrderWithBank() {
+func TestPlaceTransactionOrderWithBank(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     order := models.OrderBase{
         Action:    "buy",
         BankOrder: true,
@@ -18,27 +24,23 @@ func (s *ServicesTestSuite) TestPlaceTransactionOrderWithBank() {
         Quantity:  1.00,
     }
 
-    body := s.ToJsonBody(order)
-    req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
+    body := app.ToJsonBody(order)
+    req := app.NewJsonRequest("POST", "/api/order/", body, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
-    s.Equal(http.StatusCreated, rec.Code)
-    if http.StatusCreated != rec.Code {
-        // There is no point of going further!
-        s.T().Fatalf("Code incorrect. Body: %v", rec.Body.String())
-    }
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
+    assert.Equal(t, http.StatusCreated, rec.Code)
 
     uuid := json_body["uuid"]
     created := json_body["created_at"]
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "action":      "buy",
         "hashtag":     "Tag1",
         "quantity":    1.00,
-        "user_id":     s.User.Email,
+        "user_id":     app.User.UserID,
         "bank_order":  true,
         "complete":    false,
         "value":       1.00,
@@ -48,13 +50,16 @@ func (s *ServicesTestSuite) TestPlaceTransactionOrderWithBank() {
         "resolution":  "",
         "notes":       "",
     }
-    order_in_db, err := models.GetOrder(req, uuid.(string))
-    s.NoError(err)
-    s.NotNil(order_in_db)
-    s.JsonEqual(expected, json_body)
+    order_in_db, err := models.GetOrder(req, app.User, uuid.(string))
+    assert.NoError(t, err)
+    assert.NotNil(t, order_in_db)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
+func TestPlaceInvalidTransactionOrderWithBank(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     order := models.OrderBase{
         Action:    "freebe",
         BankOrder: true,
@@ -62,26 +67,29 @@ func (s *ServicesTestSuite) TestPlaceInvalidTransactionOrderWithBank() {
         Quantity:  101.00,
     }
 
-    body := s.ToJsonBody(order)
-    req := s.NewJsonRequest("POST", "/api/order/", body, s.User)
+    body := app.ToJsonBody(order)
+    req := app.NewJsonRequest("POST", "/api/order/", body, app.User)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  400,
         "error": "Incorrect fields: action, hashtag, quantity",
     }
 
-    s.Equal(http.StatusBadRequest, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusBadRequest, rec.Code)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestGetOrderDetails() {
-    req := s.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, s.User)
+func TestGetOrderDetails(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     order := models.Order{
         OrderBase: models.OrderBase{
@@ -92,7 +100,7 @@ func (s *ServicesTestSuite) TestGetOrderDetails() {
         },
         OrderSystem: models.OrderSystem{
             UUID:       "FAKE-UUID",
-            UserID:     s.User.Email,
+            UserID:     app.User.UserID,
             Complete:   false,
             Value:      1,
             CreatedAt:  time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
@@ -102,16 +110,16 @@ func (s *ServicesTestSuite) TestGetOrderDetails() {
         },
     }
     time.Local = time.UTC
-    order.Put(req)
+    app.Put(order)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "action":      "buy",
         "hashtag":     "Tag1",
         "quantity":    1.00,
-        "user_id":     s.User.Email,
+        "user_id":     app.User.UserID,
         "bank_order":  true,
         "complete":    false,
         "value":       1.00,
@@ -122,15 +130,18 @@ func (s *ServicesTestSuite) TestGetOrderDetails() {
         "notes":       "Some note",
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.JsonEqual(expected, json_body)
+    assert.Equal(t, http.StatusOK, rec.Code)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestGetOrderDifferentUser() {
-    req := s.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, s.User)
+func TestGetOrderDifferentUser(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("GET", "/api/order/FAKE-UUID/", nil, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     order := models.Order{
         OrderBase: models.OrderBase{
@@ -145,18 +156,21 @@ func (s *ServicesTestSuite) TestGetOrderDifferentUser() {
             Complete: false,
         },
     }
-    order.Put(req)
+    app.Put(order)
 
-    rec := s.Do(req)
+    rec := app.Do(req)
 
-    s.Equal(http.StatusNotFound, rec.Code)
+    assert.Equal(t, http.StatusNotFound, rec.Code)
 }
 
-func (s *ServicesTestSuite) TestCancelOrder() {
-    req := s.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, s.User)
+func TestCancelOrder(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     order := models.Order{
         OrderBase: models.OrderBase{
@@ -167,26 +181,29 @@ func (s *ServicesTestSuite) TestCancelOrder() {
         },
         OrderSystem: models.OrderSystem{
             UUID:     "FAKE-UUID",
-            UserID:   s.User.Email,
+            UserID:   app.User.UserID,
             Complete: false,
         },
     }
-    order.Put(req)
+    app.Put(order)
 
-    rec := s.Do(req)
+    rec := app.Do(req)
 
-    s.Equal(http.StatusNoContent, rec.Code)
-    s.Equal(0, rec.Body.Len(), rec.Body.String())
+    assert.Equal(t, http.StatusNoContent, rec.Code)
+    assert.Equal(t, 0, rec.Body.Len(), rec.Body.String())
 
-    cancelled_order, _ := models.GetOrder(req, "FAKE-UUID")
-    s.Nil(cancelled_order)
+    cancelled_order, _ := models.GetOrder(req, app.User, "FAKE-UUID")
+    assert.Nil(t, cancelled_order)
 }
 
-func (s *ServicesTestSuite) TestCancelCompetedOrder() {
-    req := s.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, s.User)
+func TestCancelCompetedOrder(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("DELETE", "/api/order/FAKE-UUID/", nil, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     order := models.Order{
         OrderBase: models.OrderBase{
@@ -197,23 +214,26 @@ func (s *ServicesTestSuite) TestCancelCompetedOrder() {
         },
         OrderSystem: models.OrderSystem{
             UUID:     "FAKE-UUID",
-            UserID:   s.User.Email,
+            UserID:   app.User.UserID,
             Complete: true,
         },
     }
-    order.Put(req)
+    app.Put(order)
 
-    rec := s.Do(req)
+    rec := app.Do(req)
 
-    s.Equal(http.StatusBadRequest, rec.Code)
+    assert.Equal(t, http.StatusBadRequest, rec.Code)
 }
 
-func (s *ServicesTestSuite) TestCurrentOrders() {
-    req := s.NewJsonRequest("GET", "/api/order/", nil, s.User)
+func TestCurrentOrders(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("GET", "/api/order/", nil, app.User)
     time.Local = time.UTC
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     base_order := models.OrderBase{
         Action:    "buy",
@@ -226,29 +246,29 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
             UUID:       "pending-1",
-            UserID:     s.User.Email,
+            UserID:     app.User.UserID,
             Complete:   false,
             Value:      1,
             CreatedAt:  time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC),
             ExecutedAt: time.Time{},
         },
     }
-    order_1.Put(req)
+    app.Put(order_1)
 
     order_1.UUID = "pending-2"
     order_1.CreatedAt = time.Date(2015, time.February, 04, 19, 31, 0, 0, time.UTC)
     order_1.ExecutedAt = time.Time{}
-    order_1.Put(req)
+    app.Put(order_1)
 
     order_2 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
             UUID:     "complete-1",
-            UserID:   s.User.Email,
+            UserID:   app.User.UserID,
             Complete: true,
         },
     }
-    order_2.Put(req)
+    app.Put(order_2)
 
     order_3 := models.Order{
         OrderBase: base_order,
@@ -258,17 +278,17 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
             Complete: false,
         },
     }
-    order_3.Put(req)
+    app.Put(order_3)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToListOfStringMap(rec)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToListOfStringMap(rec)
 
-    expected := gaetestsuite.JsonList{
-        gaetestsuite.Json{
+    expected := test_tools.JsonList{
+        test_tools.Json{
             "action":      "buy",
             "hashtag":     "Tag1",
             "quantity":    1.00,
-            "user_id":     s.User.Email,
+            "user_id":     app.User.UserID,
             "bank_order":  true,
             "complete":    false,
             "uuid":        "pending-2",
@@ -278,11 +298,11 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
             "resolution":  "",
             "notes":       "",
         },
-        gaetestsuite.Json{
+        test_tools.Json{
             "action":      "buy",
             "hashtag":     "Tag1",
             "quantity":    1.00,
-            "user_id":     s.User.Email,
+            "user_id":     app.User.UserID,
             "bank_order":  true,
             "complete":    false,
             "uuid":        "pending-1",
@@ -294,16 +314,19 @@ func (s *ServicesTestSuite) TestCurrentOrders() {
         },
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.Len(json_body, 2)
-    s.JsonListEqual(expected, json_body)
+    assert.Equal(t, http.StatusOK, rec.Code)
+    assert.Len(t, json_body, 2)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestHistoricOrders() {
-    req := s.NewJsonRequest("GET", "/api/order/history/", nil, s.User)
+func TestHistoricOrders(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
+    req := app.NewJsonRequest("GET", "/api/order/history/", nil, app.User)
 
     tag := models.HashTag{HashTag: "Tag1", Value: 1.00, InBank: 1.00}
-    tag.Put(req)
+    app.Put(tag)
 
     base_order := models.OrderBase{
         Action:    "buy",
@@ -316,7 +339,7 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
             UUID:       "complete-1",
-            UserID:     s.User.Email,
+            UserID:     app.User.UserID,
             Complete:   true,
             Value:      1.0,
             CreatedAt:  time.Date(2015, time.February, 04, 19, 00, 0, 0, time.UTC),
@@ -324,27 +347,27 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
             Resolution: models.SUCCESS,
         },
     }
-    order_1.Put(req)
+    app.Put(order_1)
 
     order_1.UUID = "complete-2"
     order_1.CreatedAt = time.Date(2015, time.February, 04, 19, 30, 0, 0, time.UTC)
     order_1.ExecutedAt = time.Date(2015, time.February, 04, 19, 45, 0, 0, time.UTC)
     order_1.Resolution = models.FAILURE
     order_1.Notes = "some reason"
-    order_1.Put(req)
+    app.Put(order_1)
 
     order_2 := models.Order{
         OrderBase: base_order,
         OrderSystem: models.OrderSystem{
             UUID:       "pending-1",
-            UserID:     s.User.Email,
+            UserID:     app.User.UserID,
             Complete:   false,
             Value:      1.0,
             CreatedAt:  time.Date(2015, time.February, 04, 19, 00, 0, 0, time.UTC),
             ExecutedAt: time.Time{},
         },
     }
-    order_2.Put(req)
+    app.Put(order_2)
 
     order_3 := models.Order{
         OrderBase: base_order,
@@ -357,17 +380,17 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
             ExecutedAt: time.Date(2015, time.February, 04, 19, 46, 0, 0, time.UTC),
         },
     }
-    order_3.Put(req)
+    app.Put(order_3)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToListOfStringMap(rec)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToListOfStringMap(rec)
 
-    expected := gaetestsuite.JsonList{
-        gaetestsuite.Json{
+    expected := test_tools.JsonList{
+        test_tools.Json{
             "action":      "buy",
             "hashtag":     "Tag1",
             "quantity":    1.00,
-            "user_id":     s.User.Email,
+            "user_id":     app.User.UserID,
             "bank_order":  true,
             "complete":    true,
             "value":       1.0,
@@ -377,11 +400,11 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
             "resolution":  "failure",
             "notes":       "some reason",
         },
-        gaetestsuite.Json{
+        test_tools.Json{
             "action":      "buy",
             "hashtag":     "Tag1",
             "quantity":    1.00,
-            "user_id":     s.User.Email,
+            "user_id":     app.User.UserID,
             "bank_order":  true,
             "complete":    true,
             "value":       1.0,
@@ -393,27 +416,28 @@ func (s *ServicesTestSuite) TestHistoricOrders() {
         },
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.Len(json_body, 2)
-    s.JsonListEqual(expected, json_body)
+    assert.Equal(t, http.StatusOK, rec.Code)
+    assert.Len(t, json_body, 2)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestHistoricOrdersFilters() {
-    dReq := s.DummyRequest(s.User)
+func TestHistoricOrdersFilters(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
 
     tags := []string{"Tag1", "Other"}
     for _, tagName := range tags {
         tag := models.HashTag{HashTag: tagName, Value: 1.00, InBank: 1.00}
-        tag.Put(dReq)
+        app.Put(tag)
     }
 
     orderForTag := []string{"Tag1", "Tag1", "Tag1", "Tag1", "Other", "Tag1"}
     sysOrders := []models.OrderSystem{
-        models.OrderSystem{UUID: "complete-1", Complete: true, Resolution: models.SUCCESS, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 01, 00, 0, 0, time.UTC)},
-        models.OrderSystem{UUID: "complete-2", Complete: true, Resolution: models.ERROR, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 02, 00, 0, 0, time.UTC)},
-        models.OrderSystem{UUID: "complete-3", Complete: true, Resolution: models.FAILURE, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 03, 00, 0, 0, time.UTC)},
-        models.OrderSystem{UUID: "pending--1", Complete: false, Resolution: models.PENDING, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 04, 00, 0, 0, time.UTC)},
-        models.OrderSystem{UUID: "other-succ", Complete: true, Resolution: models.SUCCESS, UserID: s.User.Email, CreatedAt: time.Date(2015, time.February, 04, 05, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "complete-1", Complete: true, Resolution: models.SUCCESS, UserID: app.User.UserID, CreatedAt: time.Date(2015, time.February, 04, 01, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "complete-2", Complete: true, Resolution: models.ERROR, UserID: app.User.UserID, CreatedAt: time.Date(2015, time.February, 04, 02, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "complete-3", Complete: true, Resolution: models.FAILURE, UserID: app.User.UserID, CreatedAt: time.Date(2015, time.February, 04, 03, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "pending--1", Complete: false, Resolution: models.PENDING, UserID: app.User.UserID, CreatedAt: time.Date(2015, time.February, 04, 04, 00, 0, 0, time.UTC)},
+        models.OrderSystem{UUID: "other-succ", Complete: true, Resolution: models.SUCCESS, UserID: app.User.UserID, CreatedAt: time.Date(2015, time.February, 04, 05, 00, 0, 0, time.UTC)},
         models.OrderSystem{UUID: "OTHER-USER", Complete: true, Resolution: models.SUCCESS, UserID: "stranger", CreatedAt: time.Date(2015, time.February, 04, 01, 00, 0, 0, time.UTC)},
     }
 
@@ -422,8 +446,8 @@ func (s *ServicesTestSuite) TestHistoricOrdersFilters() {
             OrderBase:   models.OrderBase{HashTag: orderForTag[i]},
             OrderSystem: sysOrder,
         }
-        err := order.Put(dReq)
-        s.NoError(err)
+        err := app.Put(order)
+        assert.NoError(t, err)
     }
 
     // Test Matrix
@@ -437,15 +461,15 @@ func (s *ServicesTestSuite) TestHistoricOrdersFilters() {
 
     for i, filter := range filters {
         // Act
-        req := s.NewJsonRequest("GET", "/api/order/history/?"+filter, nil, s.User)
-        rec := s.Do(req)
-        json_body := s.JsonResponceToListOfStringMap(rec)
+        req := app.NewJsonRequest("GET", "/api/order/history/?"+filter, nil, app.User)
+        rec := app.Do(req)
+        json_body := app.JsonResponceToListOfStringMap(rec)
 
         // Assert
-        s.Equal(http.StatusOK, rec.Code)
-        s.Len(json_body, len(expected[i]))
+        assert.Equal(t, http.StatusOK, rec.Code)
+        assert.Len(t, json_body, len(expected[i]))
         for j, order := range json_body {
-            s.Equal(order["uuid"], expected[i][j])
+            assert.Equal(t, order["uuid"], expected[i][j])
         }
     }
 }

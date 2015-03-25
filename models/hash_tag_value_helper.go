@@ -1,27 +1,31 @@
 package models
 
 import (
-    "fmt"
     "net/http"
     "sort"
     "time"
 
-    "appengine"
-    "appengine/datastore"
+    "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2/bson"
 )
-
-func hashTagValueKey(ctx appengine.Context, name string, date time.Time) (key *datastore.Key) {
-    return datastore.NewKey(ctx, hashTagValueKind, fmt.Sprintf("%s_%s", name, date.String()), 0, nil)
-}
 
 func GetHashTagValues(req *http.Request, hashTagName string, since time.Time, sampling time.Duration) (values []HashTagValue, err error) {
     if err = hashTagExistsOrError(req, hashTagName); err != nil {
         return
     }
-    ctx := appengine.NewContext(req)
 
-    q := datastore.NewQuery(hashTagValueKind).Filter("HashTag = ", hashTagName).Filter("Date >", since).Order("Date")
-    _, err = q.GetAll(ctx, &values)
+    col := storage.Collection(HashTagValueCollectionName)
+    defer col.Database.Session.Close()
+
+    since = since.Truncate(24 * time.Hour)
+    selector := bson.M{
+        "hashtag": hashTagName,
+        "date": bson.M{
+            "$gt": since,
+        },
+    }
+
+    err = col.Find(selector).Sort("date").All(&values)
     if err != nil {
         return
     }
@@ -34,16 +38,25 @@ func GetHashTagValues(req *http.Request, hashTagName string, since time.Time, sa
 }
 
 func LatestUpdateToHashTagValues(req *http.Request) (date time.Time, err error) {
-    ctx := appengine.NewContext(req)
-    q := datastore.NewQuery(hashTagValueKind).Order("-Date").Limit(1)
+    col := storage.Collection(HashTagValueCollectionName)
+    defer col.Database.Session.Close()
 
-    values := []HashTagValue{}
-    _, err = q.GetAll(ctx, &values)
-    if len(values) == 0 {
-        return time.Time{}, err
+    value := HashTagValue{}
+    err = col.Find(nil).Sort("-date").Limit(1).One(&value)
+
+    if err == mgo.ErrNotFound {
+        return time.Time{}, nil
     }
 
-    return values[0].Date, err
+    return value.Date, err
+}
+
+func AddHashTagValue(req *http.Request, value HashTagValue) (err error) {
+    col := storage.Collection(HashTagValueCollectionName)
+    defer col.Database.Session.Close()
+
+    err = col.Insert(value)
+    return
 }
 
 func resampleTagValues(values []HashTagValue, sampling time.Duration) (sorted []HashTagValue) {
