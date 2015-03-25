@@ -5,6 +5,7 @@ import (
     "net/http"
 
     "github.com/hashtock/hashtock-go/conf"
+    "github.com/hashtock/hashtock-go/jobs"
     "github.com/hashtock/hashtock-go/models"
     "github.com/hashtock/hashtock-go/webapp"
 )
@@ -15,6 +16,8 @@ func main() {
     if err != nil {
         log.Fatalln(err)
     }
+
+    jobs.StartJobs(cfg, storage)
 
     handler := webapp.Handlers(cfg, storage)
 

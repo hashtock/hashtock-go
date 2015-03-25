@@ -5,10 +5,13 @@ import (
     "log"
     "net/http"
     "os"
+    "time"
 
     "code.google.com/p/gcfg"
     "golang.org/x/oauth2"
 )
+
+type confDuration string
 
 type Config struct {
     General GeneralConf
@@ -21,6 +24,11 @@ type Config struct {
     GoogleOAuth struct {
         ClientID     string
         ClientSecret string
+    }
+
+    Jobs struct {
+        BankOrders confDuration
+        TagValues  confDuration
     }
 }
 
@@ -47,6 +55,14 @@ func (c *Config) isAdmin(email string) bool {
     return c.General.admins[email]
 }
 
+func (c confDuration) Duration() time.Duration {
+    duration, err := time.ParseDuration(string(c))
+    if err != nil {
+        log.Fatalln("Could not parse duraiton:", err)
+    }
+    return duration
+}
+
 var cfg *Config = nil
 
 const exampleConfig = `[general]
@@ -66,6 +82,10 @@ HMACSecret = "shared secret with tracker"
 [GoogleOAuth]
 ClientID = "ID of Google auth key"
 ClientSecret = "Shared secret"
+
+[Jobs]
+BankOrders = 1m
+TagValues = 1m
 `
 
 func GetConfig() *Config {

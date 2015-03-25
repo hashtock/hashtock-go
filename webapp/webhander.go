@@ -60,10 +60,5 @@ func Handlers(cfg *conf.Config, storage *models.MgoStorage) http.Handler {
         r.Get("/", apiDefinition)
     })
 
-    m.Group("/_cron", func(r martini.Router) {
-        r.Get("/bank-orders/", services.ExecuteBankOrders).Name("Cron:executeBankOrders")
-        r.Get("/tag-values/", services.FetchLatestTagValues).Name("Cron:fetchLatestTagValues")
-    })
-
     return m
 }

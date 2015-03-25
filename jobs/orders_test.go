@@ -1,14 +1,14 @@
 // Cron service
 // Run as part of service test suite
-package services_test
+package jobs_test
 
 import (
-    "log"
     "net/http"
     "testing"
 
     "github.com/stretchr/testify/assert"
 
+    "github.com/hashtock/hashtock-go/jobs"
     "github.com/hashtock/hashtock-go/models"
     "github.com/hashtock/hashtock-go/test_tools"
 )
@@ -16,7 +16,6 @@ import (
 // TODO(tests): Those tests need to be simplified somehow :(
 // And we need to test handling errors
 func TestExecuteBankBuyOrders(t *testing.T) {
-    log.Println("TestExecuteBankBuyOrders")
     app := test_tools.NewTestApp(t)
     defer app.Stop()
 
@@ -44,10 +43,7 @@ func TestExecuteBankBuyOrders(t *testing.T) {
     assert.Len(t, shares, 0)
 
     // Execute bank orders
-    rec := app.ExecuteJsonRequest("GET", "/_cron/bank-orders/", nil, app.AdminUser)
-
-    // Request went well
-    assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+    jobs.ExecuteBankOrders()
 
     // New request to get real, not cached data
     user_req = new(http.Request)
@@ -71,7 +67,6 @@ func TestExecuteBankBuyOrders(t *testing.T) {
 }
 
 func TestExecuteBankSellOrders(t *testing.T) {
-    log.Println("--- TestExecuteBankSellOrders ---")
     app := test_tools.NewTestApp(t)
     defer app.Stop()
 
@@ -105,10 +100,7 @@ func TestExecuteBankSellOrders(t *testing.T) {
     assert.Equal(t, []models.TagShare{user_share}, shares)
 
     // Execute bank orders
-    rec := app.ExecuteJsonRequest("GET", "/_cron/bank-orders/", nil, app.AdminUser)
-
-    // Request went well
-    assert.Equal(t, http.StatusOK, rec.Code, rec.Body.String())
+    jobs.ExecuteBankOrders()
 
     // New request to get real, not cached data
     user_req = new(http.Request)
