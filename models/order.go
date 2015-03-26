@@ -6,8 +6,7 @@ import (
     "strings"
     "time"
 
-    "appengine"
-    "appengine/datastore"
+    "gopkg.in/mgo.v2/bson"
 
     "github.com/hashtock/hashtock-go/core"
 )
@@ -23,68 +22,56 @@ const (
 
 // User part of Order
 type OrderBase struct {
-    Action    string  `json:"action"`
-    BankOrder bool    `json:"bank_order"`
-    HashTag   string  `json:"hashtag"`
-    Quantity  float64 `json:"quantity"`
+    Action    string  `bson:"action" json:"action"`
+    BankOrder bool    `bson:"bank_order" json:"bank_order"`
+    HashTag   string  `bson:"hashtag" json:"hashtag"`
+    Quantity  float64 `bson:"quantity" json:"quantity"`
 }
 
 // System fields regarding Order
 // Read only for users
 type OrderSystem struct {
-    UUID       string          `json:"uuid"`
-    UserID     string          `json:"user_id"`
-    Complete   bool            `json:"complete"`
-    Value      float64         `json:"value"`
-    CreatedAt  time.Time       `json:"created_at"`
-    ExecutedAt time.Time       `json:"executed_at"`
-    Resolution OrderResolution `json:"resolution"`
-    Notes      string          `json:"notes"`
+    UUID       string          `bson:"uuid" json:"uuid"`
+    UserID     string          `bson:"user_id" json:"user_id"`
+    Complete   bool            `bson:"complete" json:"complete"`
+    Value      float64         `bson:"value" json:"value"`
+    CreatedAt  time.Time       `bson:"created_at" json:"created_at"`
+    ExecutedAt time.Time       `bson:"executed_at" json:"executed_at"`
+    Resolution OrderResolution `bson:"resolution" json:"resolution"`
+    Notes      string          `bson:"notes" json:"notes"`
 }
 
 type Order struct {
-    OrderBase
-    OrderSystem
+    OrderBase   `bson:",inline"`
+    OrderSystem `bson:",inline"`
 }
 
 const (
-    orderKind  = "Order"
-    actionBuy  = "buy"
-    actionSell = "sell"
+    OrderCollectionName = "Order"
+    actionBuy           = "buy"
+    actionSell          = "sell"
 )
 
-func (o *Order) key(ctx appengine.Context) (key *datastore.Key) {
-    return orderKey(ctx, o.UUID)
-}
+func orderDelete(order *Order) (err error) {
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
 
-func (o *Order) Put(req *http.Request) (err error) {
-    ctx := appengine.NewContext(req)
-
-    key := o.key(ctx)
-    _, err = datastore.Put(ctx, key, o)
+    err = col.Remove(order)
     return
 }
 
-func (o *Order) Delete(req *http.Request) (err error) {
-    ctx := appengine.NewContext(req)
-
-    key := o.key(ctx)
-    err = datastore.Delete(ctx, key)
-    return
-}
-
-func (o *OrderBase) IsValid(req *http.Request) (err error) {
+func baseOrderValid(req *http.Request, order OrderBase) (err error) {
     fields := []string{}
 
-    if (o.Action != actionBuy) && (o.Action != actionSell) {
+    if (order.Action != actionBuy) && (order.Action != actionSell) {
         fields = append(fields, "action")
     }
 
-    if exists, tmp_err := hashTagExists(req, o.HashTag); !exists || tmp_err != nil {
+    if exists, tmp_err := hashTagExists(req, order.HashTag); !exists || tmp_err != nil {
         fields = append(fields, "hashtag")
     }
 
-    if o.Quantity < minShareStep || o.Quantity > 100 {
+    if order.Quantity < minShareStep || order.Quantity > 100 {
         fields = append(fields, "quantity")
     }
 
@@ -95,29 +82,18 @@ func (o *OrderBase) IsValid(req *http.Request) (err error) {
     return
 }
 
-func (o *Order) canAccess(req *http.Request) (ok bool, err error) {
-    var profile *Profile
+func markOrderAsComplete(order Order, status OrderResolution, notes string) (err error) {
+    order.Complete = true
+    order.Resolution = status
+    order.Notes = notes
+    order.ExecutedAt = time.Now()
 
-    if profile, err = GetProfile(req); err != nil {
-        return
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
+
+    selector := bson.M{
+        "uuid": order.UUID,
     }
-
-    ok = o.UserID == profile.UserID
+    err = col.Update(selector, order)
     return
-}
-
-func (o *Order) isCancellable() bool {
-    return o.Complete == false
-}
-
-func (o *Order) isBuy() bool {
-    return o.Action == actionBuy
-}
-
-func (o *Order) markAsComplete(req *http.Request, status OrderResolution, notes string) (err error) {
-    o.Complete = true
-    o.Resolution = status
-    o.Notes = notes
-    o.ExecutedAt = time.Now()
-    return o.Put(req)
 }

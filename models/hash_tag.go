@@ -1,31 +1,32 @@
 package models
 
 import (
-    "net/http"
-
-    "appengine"
-    "appengine/datastore"
+    "gopkg.in/mgo.v2/bson"
 )
 
 const (
-    hashTagKind        = "HashTag"
-    initialInBankValue = 100.0
+    HashTagCollectionName = "HashTag"
+    initialInBankValue    = 100.0
 )
 
 type HashTag struct {
-    HashTag string  `json:"hashtag"`
-    Value   float64 `json:"value"`
-    InBank  float64 `json:"in_bank"`
+    HashTag string  `bson:"hashtag,omitempty" json:"hashtag"`
+    Value   float64 `bson:"value,omitempty" json:"value"`
+    InBank  float64 `bson:"in_bank,omitempty" json:"in_bank"`
 }
 
-func (h *HashTag) key(ctx appengine.Context) (key *datastore.Key) {
-    return hashTagKey(ctx, h.HashTag)
-}
+func hashTagUpdateInBank(hashTag *HashTag, delta float64) (err error) {
+    col := storage.Collection(HashTagCollectionName)
+    defer col.Database.Session.Close()
 
-func (h *HashTag) Put(req *http.Request) (err error) {
-    ctx := appengine.NewContext(req)
+    selector := bson.M{
+        "hashtag": hashTag.HashTag,
+    }
 
-    key := h.key(ctx)
-    _, err = datastore.Put(ctx, key, h)
+    update_with := bson.M{
+        "$inc": bson.M{"in_bank": delta},
+    }
+
+    err = col.Update(selector, update_with)
     return
 }

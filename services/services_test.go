@@ -5,21 +5,21 @@ import (
     "net/http"
     "testing"
 
-    _ "github.com/hashtock/hashtock-go/app" // Imported to initialize app
-    "github.com/hashtock/hashtock-go/gaetestsuite"
+    "github.com/stretchr/testify/assert"
+
+    "github.com/hashtock/hashtock-go/test_tools"
 )
 
-type ServicesTestSuite struct {
-    gaetestsuite.GAETestSuite
-}
+func TestApiHasAllEndpoints(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
 
-func (s *ServicesTestSuite) TestApiHasAllEndpoints() {
-    rec := s.ExecuteJsonRequest("GET", "/api/", nil, s.User)
-    json_body := s.JsonResponceToStringMap(rec)
+    rec := app.ExecuteJsonRequest("GET", "/api/", nil, app.User)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
-        "Auth:Login":            "/auth/login/",
-        "Auth:Logout":           "/auth/logout/",
+    expected := test_tools.Json{
+        // "Auth:Login":            "/auth/login/",
+        // "Auth:Logout":           "/auth/logout/",
         "Order:CancelOrder":     "/api/order/:uuid/",
         "Order:CompletedOrders": "/api/order/history/",
         "Order:NewOrder":        "/api/order/",
@@ -33,12 +33,6 @@ func (s *ServicesTestSuite) TestApiHasAllEndpoints() {
         "User:CurentUser":       "/api/user/",
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.Equal(expected, json_body)
-}
-
-/* Kickoff Test Suite */
-
-func TestServicesTestSuite(t *testing.T) {
-    gaetestsuite.Run(t, new(ServicesTestSuite))
+    assert.Equal(t, http.StatusOK, rec.Code)
+    json_body.Equal(t, expected)
 }

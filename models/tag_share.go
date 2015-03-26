@@ -1,39 +1,46 @@
 package models
 
 import (
-    "net/http"
-
-    "appengine"
-    "appengine/datastore"
+    "gopkg.in/mgo.v2/bson"
 )
 
 const (
-    tagShareKind = "TagShare"
-    minShareStep = 0.01
+    TagShareCollectionName = "TagShare"
+    minShareStep           = 0.01
 )
 
 type TagShare struct {
-    HashTag  string  `json:"hashtag"`
-    UserID   string  `json:"-"`
-    Quantity float64 `json:"quantity"`
+    HashTag  string  `bson:"hashtag" json:"hashtag"`
+    UserID   string  `bson:"user_id" json:"-"`
+    Quantity float64 `bson:"quantity" json:"quantity"`
 }
 
-func (t *TagShare) key(ctx appengine.Context) (key *datastore.Key) {
-    return tagShareKey(ctx, t.HashTag, t.UserID)
-}
+func tagShareUpdateQuantity(tagShare *TagShare, delta float64) (err error) {
+    col := storage.Collection(TagShareCollectionName)
+    defer col.Database.Session.Close()
 
-func (t *TagShare) Put(req *http.Request) (err error) {
-    ctx := appengine.NewContext(req)
+    selector := bson.M{
+        "hashtag": tagShare.HashTag,
+        "user_id": tagShare.UserID,
+    }
 
-    key := t.key(ctx)
-    _, err = datastore.Put(ctx, key, t)
+    update_with := bson.M{
+        "$inc": bson.M{"quantity": delta},
+    }
+    // Upsert because it's possible that it does not exist
+    _, err = col.Upsert(selector, update_with)
     return
 }
 
-func (t *TagShare) Delete(req *http.Request) (err error) {
-    ctx := appengine.NewContext(req)
+func tagShareDelete(tagShare *TagShare) (err error) {
+    col := storage.Collection(TagShareCollectionName)
+    defer col.Database.Session.Close()
 
-    key := t.key(ctx)
-    err = datastore.Delete(ctx, key)
+    selector := bson.M{
+        "hashtag": tagShare.HashTag,
+        "user_id": tagShare.UserID,
+    }
+
+    err = col.Remove(selector)
     return
 }

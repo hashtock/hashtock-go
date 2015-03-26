@@ -6,26 +6,15 @@ import (
     "net/http"
     "time"
 
-    "appengine"
-    "appengine/datastore"
     "code.google.com/p/go-uuid/uuid"
+    "gopkg.in/mgo.v2"
+    "gopkg.in/mgo.v2/bson"
 
     "github.com/hashtock/hashtock-go/core"
 )
 
-func orderKey(ctx appengine.Context, order_uuid string) (key *datastore.Key) {
-    return datastore.NewKey(ctx, orderKind, order_uuid, 0, nil)
-}
-
-func newOrderSystem(req *http.Request, base_order OrderBase) (order OrderSystem, err error) {
-    var (
-        profile *Profile
-        hashTag *HashTag
-    )
-
-    if profile, err = GetProfile(req); err != nil {
-        return
-    }
+func newOrderSystem(req *http.Request, profile *Profile, base_order OrderBase) (order OrderSystem, err error) {
+    var hashTag *HashTag
 
     if hashTag, err = GetHashTag(req, base_order.HashTag); err != nil {
         return
@@ -43,13 +32,13 @@ func newOrderSystem(req *http.Request, base_order OrderBase) (order OrderSystem,
     return
 }
 
-func PlaceOrder(req *http.Request, base_order OrderBase) (order *Order, err error) {
-    if err = base_order.IsValid(req); err != nil {
+func PlaceOrder(req *http.Request, profile *Profile, base_order OrderBase) (order *Order, err error) {
+    if err = baseOrderValid(req, base_order); err != nil {
         return
     }
 
     var system_order OrderSystem
-    if system_order, err = newOrderSystem(req, base_order); err != nil {
+    if system_order, err = newOrderSystem(req, profile, base_order); err != nil {
         return
     }
 
@@ -58,125 +47,90 @@ func PlaceOrder(req *http.Request, base_order OrderBase) (order *Order, err erro
         OrderSystem: system_order,
     }
 
-    order.Put(req)
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
+
+    err = col.Insert(order)
 
     return
 }
 
-func GetOrder(req *http.Request, order_uuid string) (order *Order, err error) {
-    ctx := appengine.NewContext(req)
+func GetOrder(req *http.Request, profile *Profile, order_uuid string) (order *Order, err error) {
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
 
-    order = new(Order)
-    key := orderKey(ctx, order_uuid)
-    err = datastore.Get(ctx, key, order)
+    selector := bson.M{
+        "user_id": profile.UserID,
+        "uuid":    order_uuid,
+    }
 
-    not_found_msg := fmt.Sprintf("Order %#v not found", order_uuid)
-
-    if err == datastore.ErrNoSuchEntity {
+    err = col.Find(selector).One(&order)
+    if err == mgo.ErrNotFound {
+        not_found_msg := fmt.Sprintf("Order %#v not found", order_uuid)
         err = core.NewNotFoundError(not_found_msg)
-    } else if err != nil {
-        err = core.NewInternalServerError(err.Error())
     }
-
-    var ok bool
-    ok, err = order.canAccess(req)
-    if err != nil {
-        err = core.NewInternalServerError(err.Error())
-    }
-
-    if !ok {
-        err = core.NewNotFoundError(not_found_msg)
-        order = nil
-    }
-
     return
 }
 
-func CancelOrder(req *http.Request, order_uuid string) (err error) {
-    order, err := GetOrder(req, order_uuid)
+func CancelOrder(req *http.Request, profile *Profile, order_uuid string) (err error) {
+    order, err := GetOrder(req, profile, order_uuid)
     if err != nil {
         return
     }
 
-    if !order.isCancellable() {
+    if order.Complete {
         err = core.NewBadRequestError("Order can not be cancelled any more")
         return
     }
 
-    order.Delete(req)
+    err = orderDelete(order)
 
     return
 }
 
-func allUserOrdersQuery(req *http.Request) (query *datastore.Query, err error) {
-    var profile *Profile
+func GetActiveUserOrders(req *http.Request, profile *Profile) (orders []Order, err error) {
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
 
-    if profile, err = GetProfile(req); err != nil {
-        return
+    selector := bson.M{
+        "user_id":  profile.UserID,
+        "complete": false,
+    }
+    err = col.Find(selector).Sort("-created_at").All(&orders)
+    return
+}
+
+func GetCompletedUserOrders(req *http.Request, profile *Profile, tag string, resolution string) (orders []Order, err error) {
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
+
+    selector := bson.M{
+        "user_id":  profile.UserID,
+        "complete": true,
     }
 
-    query = allOrdersQuery().Filter("UserID =", profile.UserID)
-
-    return
-}
-
-func allOrdersQuery() (query *datastore.Query) {
-    return datastore.NewQuery(orderKind)
-}
-
-func orderByCompletnessQuery(query *datastore.Query, complete bool) *datastore.Query {
-    return query.Filter("Complete =", complete).Order("-CreatedAt")
-}
-
-func filterOrderQuery(query *datastore.Query, tag string, resolution string) *datastore.Query {
     if tag != "" {
-        query = query.Filter("HashTag =", tag)
+        selector["hashtag"] = tag
     }
 
     if resolution != "" {
-        query = query.Filter("Resolution =", resolution)
+        selector["resolution"] = resolution
     }
-    return query
-}
 
-func executeOrderQuery(req *http.Request, query *datastore.Query) (orders []Order, err error) {
-    ctx := appengine.NewContext(req)
-    _, err = query.GetAll(ctx, &orders)
-
+    err = col.Find(selector).Sort("-created_at").All(&orders)
     return
 }
 
-func GetActiveUserOrders(req *http.Request) (orders []Order, err error) {
-    var query *datastore.Query
-    query, err = allUserOrdersQuery(req)
-    if err != nil {
-        return
-    }
-
-    query = orderByCompletnessQuery(query, false)
-
-    return executeOrderQuery(req, query)
-}
-
-func GetCompletedUserOrders(req *http.Request, tag string, resolution string) (orders []Order, err error) {
-    var query *datastore.Query
-    query, err = allUserOrdersQuery(req)
-    if err != nil {
-        return
-    }
-
-    query = orderByCompletnessQuery(query, true)
-    query = filterOrderQuery(query, tag, resolution)
-
-    return executeOrderQuery(req, query)
-}
-
 func GetAllActiveBankOrders(req *http.Request) (orders []Order, err error) {
-    query := allOrdersQuery()
-    query = query.Filter("Complete =", false)
-    query = query.Filter("BankOrder =", true)
+    col := storage.Collection(OrderCollectionName)
+    defer col.Database.Session.Close()
 
-    return executeOrderQuery(req, query)
+    selector := bson.M{
+        "complete":   false,
+        "bank_order": true,
+    }
+    err = col.Find(selector).Sort("-created_at").All(&orders)
+    return
 }
 
 func ExecuteBankOrder(req *http.Request, order Order) (err error) {
@@ -192,61 +146,57 @@ func ExecuteBankOrder(req *http.Request, order Order) (err error) {
     }
 
     if hashTag, err = GetHashTag(req, order.HashTag); err != nil {
-        order.markAsComplete(req, ERROR, "")
+        markOrderAsComplete(order, ERROR, "")
         return
     }
 
     if profile, err = getProfileForUserId(req, order.UserID); err != nil {
-        order.markAsComplete(req, ERROR, "")
+        markOrderAsComplete(order, ERROR, "")
         return
     }
 
     if tagShare, err = getOrCreateTagShare(req, profile, order.HashTag); err != nil {
-        order.markAsComplete(req, ERROR, "")
-        return
+        if err != mgo.ErrNotFound {
+            markOrderAsComplete(order, ERROR, "")
+            return
+        }
+        err = nil
     }
 
-    if order.isBuy() {
+    if order.Action == actionBuy {
         if profile.Founds < order.Value {
-            order.markAsComplete(req, FAILURE, "Not enough founds")
+            markOrderAsComplete(order, FAILURE, "Not enough founds")
             msg := fmt.Sprintf("User %v does not have enough founds to complete %v", profile, order)
             return core.NewBadRequestError(msg)
         }
 
         if hashTag.InBank < order.Quantity {
-            order.markAsComplete(req, FAILURE, "Not enough shares in bank")
+            markOrderAsComplete(order, FAILURE, "Not enough shares in bank")
             msg := fmt.Sprintf("Bank does not have enough shares to complete %v", order)
             return core.NewBadRequestError(msg)
         }
 
-        profile.Founds -= order.Value
-        tagShare.Quantity += order.Quantity
-        hashTag.InBank -= order.Quantity
-
-        profile.Put(req)
-        tagShare.Put(req)
-        hashTag.Put(req)
+        profileUpdateFounds(profile, -order.Value)
+        tagShareUpdateQuantity(tagShare, order.Quantity)
+        hashTagUpdateInBank(hashTag, -order.Quantity)
     } else {
         if tagShare.Quantity < order.Quantity {
-            order.markAsComplete(req, FAILURE, "Not enough shares in users possession")
-            msg := fmt.Sprintf("User %v does not have enough shares to complete %v", profile, order)
+            markOrderAsComplete(order, FAILURE, "Not enough shares in users possession")
+            msg := fmt.Sprintf("User %v does not have enough shares (%v) to complete %v - %#v", profile.UserID, tagShare.Quantity, order.UUID, order.OrderBase)
             return core.NewBadRequestError(msg)
         }
 
-        profile.Founds += order.Value
-        tagShare.Quantity -= order.Quantity
-        hashTag.InBank += order.Quantity
-
-        profile.Put(req)
-        hashTag.Put(req)
         if tagShare.Quantity < minShareStep/100.0 {
-            tagShare.Delete(req)
+            tagShareDelete(tagShare)
         } else {
-            tagShare.Put(req)
+            tagShareUpdateQuantity(tagShare, -order.Quantity)
         }
+
+        profileUpdateFounds(profile, order.Value)
+        hashTagUpdateInBank(hashTag, order.Quantity)
     }
 
-    order.markAsComplete(req, SUCCESS, "")
+    markOrderAsComplete(order, SUCCESS, "")
 
     return
 }

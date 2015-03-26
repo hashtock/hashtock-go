@@ -1,252 +1,279 @@
-// Admin part of Tag service (candidate for separate service?)
-// Run as part of service test suite
 package services_test
 
 import (
     "net/http"
+    "testing"
 
-    "github.com/hashtock/hashtock-go/gaetestsuite"
+    "github.com/stretchr/testify/assert"
+
     "github.com/hashtock/hashtock-go/models"
+    "github.com/hashtock/hashtock-go/test_tools"
 )
 
-func (s *ServicesTestSuite) TestAdminAddingTag() {
+func TestAdminAddingTag(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     tag := models.HashTag{
         HashTag: "TestTag",
         Value:   10.5,
     }
 
-    body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(tag)
+    req := app.NewJsonRequest("POST", "/api/tag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "hashtag": "TestTag",
         "value":   10.5,
         "in_bank": 100.0,
     }
 
-    s.Equal(http.StatusCreated, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusCreated, rec.Code)
+    json_body.Equal(t, expected)
 
     tag.InBank = 100
     new_tag, err := models.GetHashTag(req, "TestTag")
-    s.NoError(err)
-    s.Equal(tag, *new_tag)
+    assert.NoError(t, err)
+    assert.Equal(t, tag, *new_tag)
 }
 
-func (s *ServicesTestSuite) TestAdminAddingTagWithInBankValue() {
+func TestAdminAddingTagWithInBankValue(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     tag := models.HashTag{
         HashTag: "TestTag",
         Value:   10.5,
         InBank:  1.0,
     }
 
-    body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(tag)
+    req := app.NewJsonRequest("POST", "/api/tag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "hashtag": "TestTag",
         "value":   10.5,
         "in_bank": 100.0,
     }
 
-    s.Equal(http.StatusCreated, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusCreated, rec.Code)
+    json_body.Equal(t, expected)
 
     new_tag, err := models.GetHashTag(req, "TestTag")
-    s.NoError(err)
-    s.Equal(100.0, new_tag.InBank)
+    assert.NoError(t, err)
+    assert.Equal(t, 100.0, new_tag.InBank)
 }
 
-func (s *ServicesTestSuite) TestAdminAddingExistingTag() {
+func TestAdminAddingExistingTag(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     tag := models.HashTag{
         HashTag: "TestTag",
         Value:   10.5,
         InBank:  100.0,
     }
+    err := app.Put(tag)
+    assert.NoError(t, err)
 
-    body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("POST", "/api/tag/", body, s.AdminUser)
-    if err := tag.Put(req); err != nil {
-        s.T().Fatalf(err.Error())
-    }
+    body := app.ToJsonBody(tag)
+    req := app.NewJsonRequest("POST", "/api/tag/", body, app.AdminUser)
 
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  400,
         "error": "Tag alread exists",
     }
 
-    s.Equal(http.StatusBadRequest, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusBadRequest, rec.Code)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestAdminUpdateTagValue() {
-    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+func TestAdminUpdateTagValue(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     existing_tag := models.HashTag{
         HashTag: "TestTag",
         Value:   1,
         InBank:  50.0,
     }
-    existing_tag.Put(tmp_req)
+    err := app.Put(existing_tag)
+    assert.NoError(t, err)
 
     update_tag_value := models.HashTag{
         Value: 2,
     }
 
-    body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(update_tag_value)
+    req := app.NewJsonRequest("PUT", "/api/tag/TestTag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "hashtag": "TestTag",
         "value":   2,
         "in_bank": 50.0,
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusOK, rec.Code)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestAdminUpdateTagValueIgnoreBankValue() {
-    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+func TestAdminUpdateTagValueIgnoreBankValue(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     existing_tag := models.HashTag{
         HashTag: "TestTag",
         Value:   1,
         InBank:  50.0,
     }
-    existing_tag.Put(tmp_req)
+    err := app.Put(existing_tag)
+    assert.NoError(t, err)
 
     update_tag_value := models.HashTag{
         Value:  2,
         InBank: 100.0, // This will be just ignored
     }
 
-    body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(update_tag_value)
+    req := app.NewJsonRequest("PUT", "/api/tag/TestTag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "hashtag": "TestTag",
         "value":   2,
         "in_bank": 50.0,
     }
 
-    s.Equal(http.StatusOK, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusOK, rec.Code)
+    json_body.Equal(t, expected)
 }
 
-func (s *ServicesTestSuite) TestAdminUpdateTagValueInvalidHashTag() {
-    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+func TestAdminUpdateTagValueInvalidHashTag(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     existing_tag := models.HashTag{
         HashTag: "TestTag",
         Value:   1,
         InBank:  50.0,
     }
-    existing_tag.Put(tmp_req)
+    err := app.Put(existing_tag)
+    assert.NoError(t, err)
 
     update_tag_value := models.HashTag{
         HashTag: "SomethingStupid",
         Value:   2,
     }
 
-    body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(update_tag_value)
+    req := app.NewJsonRequest("PUT", "/api/tag/TestTag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  400,
         "error": "hashtag value has to be empty or correct",
     }
     tag, _ := models.GetHashTag(req, "TestTag")
 
-    s.Equal(http.StatusBadRequest, rec.Code)
-    s.Equal(expected, json_body)
-    s.Equal(existing_tag, *tag) // No change!!
+    assert.Equal(t, http.StatusBadRequest, rec.Code)
+    json_body.Equal(t, expected)
+    assert.Equal(t, existing_tag, *tag) // No change!!
 }
 
-func (s *ServicesTestSuite) TestAdminUpdateTagInvalidValue() {
-    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+func TestAdminUpdateTagInvalidValue(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     existing_tag := models.HashTag{
         HashTag: "TestTag",
         Value:   1,
         InBank:  50.0,
     }
-    existing_tag.Put(tmp_req)
+    err := app.Put(existing_tag)
+    assert.NoError(t, err)
 
     update_tag_value := models.HashTag{
         Value: 0,
     }
 
-    body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.AdminUser)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(update_tag_value)
+    req := app.NewJsonRequest("PUT", "/api/tag/TestTag/", body, app.AdminUser)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  400,
         "error": "Value has to be positive",
     }
     tag, _ := models.GetHashTag(req, "TestTag")
 
-    s.Equal(http.StatusBadRequest, rec.Code)
-    s.Equal(expected, json_body)
-    s.Equal(existing_tag, *tag) // No change!!
+    assert.Equal(t, http.StatusBadRequest, rec.Code)
+    json_body.Equal(t, expected)
+    assert.Equal(t, existing_tag, *tag) // No change!!
 }
 
-func (s *ServicesTestSuite) TestRegularUserUpdateTagValue() {
-    tmp_req := s.NewJsonRequest("GET", "/", nil, nil)
+func TestRegularUserUpdateTagValue(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     existing_tag := models.HashTag{
         HashTag: "TestTag",
         Value:   1,
         InBank:  50.0,
     }
-    existing_tag.Put(tmp_req)
+    err := app.Put(existing_tag)
+    assert.NoError(t, err)
 
     update_tag_value := models.HashTag{
         Value: 2,
     }
 
-    body := s.ToJsonBody(update_tag_value)
-    req := s.NewJsonRequest("PUT", "/api/tag/TestTag/", body, s.User)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(update_tag_value)
+    req := app.NewJsonRequest("PUT", "/api/tag/TestTag/", body, app.User)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  http.StatusForbidden,
         "error": "Forbidden",
     }
     tag, _ := models.GetHashTag(req, "TestTag")
 
-    s.Equal(http.StatusForbidden, rec.Code)
-    s.Equal(expected, json_body)
-    s.Equal(existing_tag, *tag) // No change!!
+    assert.Equal(t, http.StatusForbidden, rec.Code)
+    json_body.Equal(t, expected)
+    assert.Equal(t, existing_tag, *tag) // No change!!
 }
 
-func (s *ServicesTestSuite) TestRegularUserAddingTag() {
+func TestRegularUserAddingTag(t *testing.T) {
+    app := test_tools.NewTestApp(t)
+    defer app.Stop()
+
     tag := models.HashTag{
         HashTag: "TestTag",
         Value:   10.5,
     }
 
-    body := s.ToJsonBody(tag)
-    req := s.NewJsonRequest("POST", "/api/tag/", body, s.User)
-    rec := s.Do(req)
-    json_body := s.JsonResponceToStringMap(rec)
+    body := app.ToJsonBody(tag)
+    req := app.NewJsonRequest("POST", "/api/tag/", body, app.User)
+    rec := app.Do(req)
+    json_body := app.JsonResponceToStringMap(rec)
 
-    expected := gaetestsuite.Json{
+    expected := test_tools.Json{
         "code":  http.StatusForbidden,
         "error": "Forbidden",
     }
 
-    s.Equal(http.StatusForbidden, rec.Code)
-    s.Equal(expected, json_body)
+    assert.Equal(t, http.StatusForbidden, rec.Code)
+    json_body.Equal(t, expected)
 }

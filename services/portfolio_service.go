@@ -24,7 +24,12 @@ func Portfolio(req *http.Request, r render.Render) {
 func PortfolioTagInfo(req *http.Request, params martini.Params, r render.Render) {
     hash_tag_name := params["tag"]
 
-    profile, _ := models.GetProfile(req)
+    profile, err := models.GetProfile(req)
+    if err != nil {
+        r.JSON(core.ErrToErrorer(err))
+        return
+    }
+
     share, err := models.GetProfileShareByTagName(req, profile, hash_tag_name)
     if err != nil {
         r.JSON(core.ErrToErrorer(err))
