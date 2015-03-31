@@ -116,7 +116,7 @@ func TrackerSecretAndHost(req *http.Request) (HMACSecret string, Url string, err
 }
 
 func (c *Config) GAuthConfig() oauth2.Config {
-    oauth2Redirect := fmt.Sprintf("%v/oauth2callback", c.General.AppAddress)
+    oauth2Redirect := fmt.Sprintf("%v/auth/oauth2callback", c.General.AppAddress)
     return oauth2.Config{
         ClientID:     c.GoogleOAuth.ClientID,
         ClientSecret: c.GoogleOAuth.ClientSecret,

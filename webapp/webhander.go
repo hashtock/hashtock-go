@@ -19,7 +19,7 @@ func Handlers(cfg *conf.Config, storage *models.MgoStorage) http.Handler {
 
     oauth2.PathLogin = "/auth/login/"
     oauth2.PathLogout = "/auth/logout/"
-    oauth2.PathCallback = "/oauth2callback"
+    oauth2.PathCallback = "/auth/oauth2callback"
 
     cookieStore := sessions.NewCookieStore([]byte(cfg.General.SessionSecret))
 
