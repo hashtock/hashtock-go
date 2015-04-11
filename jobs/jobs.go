@@ -10,8 +10,8 @@ import (
 // Starts all jobs with scheduling from config
 // Jobs run forever
 func StartJobs(cfg *conf.Config, storage *models.MgoStorage) {
-    bankOrderTicker := time.NewTicker(cfg.Jobs.BankOrders.Duration())
-    tagValueTicker := time.NewTicker(cfg.Jobs.TagValues.Duration())
+    bankOrderTicker := time.NewTicker(cfg.Jobs.BankOrders)
+    tagValueTicker := time.NewTicker(cfg.Jobs.TagValues)
 
     go func() {
         for range bankOrderTicker.C {
