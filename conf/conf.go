@@ -2,16 +2,11 @@ package conf
 
 import (
     "fmt"
-    "log"
     "net/http"
-    "os"
     "time"
 
-    "code.google.com/p/gcfg"
     "golang.org/x/oauth2"
 )
-
-type confDuration string
 
 type Config struct {
     General GeneralConf
@@ -27,8 +22,8 @@ type Config struct {
     }
 
     Jobs struct {
-        BankOrders confDuration
-        TagValues  confDuration
+        BankOrders time.Duration
+        TagValues  time.Duration
     }
 }
 
@@ -53,14 +48,6 @@ func (c *Config) isAdmin(email string) bool {
     }
 
     return c.General.admins[email]
-}
-
-func (c confDuration) Duration() time.Duration {
-    duration, err := time.ParseDuration(string(c))
-    if err != nil {
-        log.Fatalln("Could not parse duraiton:", err)
-    }
-    return duration
 }
 
 var cfg *Config = nil
@@ -94,20 +81,6 @@ func GetConfig() *Config {
     }
 
     return cfg
-}
-
-func loadConfig() {
-    if cfg == nil {
-        cfg = new(Config)
-    }
-    err := gcfg.ReadFileInto(cfg, "config.ini")
-    if err != nil {
-        if os.IsNotExist(err) {
-            log.Fatalf("Could not find remote tracker configuration. Expected config.ini with content:\n%v\n", exampleConfig)
-        } else {
-            log.Fatalln("Config error:", err.Error())
-        }
-    }
 }
 
 func TrackerSecretAndHost(req *http.Request) (HMACSecret string, Url string, err error) {
