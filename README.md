@@ -1,39 +1,27 @@
 # hashtock-go
 
 ## Install
+Assuming you have Go installed and set up
 ```
-# Install go_appengine_sdk
-cd
-wget https://storage.googleapis.com/appengine-sdks/featured/go_appengine_sdk_linux_amd64-1.9.15.zip
-unzip go_appengine_sdk_linux_amd64-1.9.15.zip
-rm go_appengine_sdk_linux_amd64-1.9.15.zip
-export PATH=~/go_appengine/:$PATH
-
+# Install mongodb
 # Clone hashtock-go
-git clone git@github.com:hashtock/hashtock-go.git ~/go_packages/src/github.com/hashtock/hashtock-go
+git clone git@github.com:hashtock/hashtock-go.git $GOPATH/src/github.com hashtock/hashtock-go
 
 # Install requirements
-export GOPATH=~/go_packages
-goapp get github.com/gorilla/mux
-goapp get github.com/codegangsta/negroni
-goapp get code.google.com/p/go-uuid/uuid
-goapp get github.com/gorilla/context
-goapp get github.com/stretchr/testify/suite
+go get .
 ```
 
 ## Serve
 ```
-cd ~/go_packages/src/github.com/hashtock/hashtock-go
-./serve.sh
+cd $GOPATH/src/github.com/hashtock/hashtock-go
+go build
+./hashtock-go
 ```
-
-* Appengine admin is running at http://localhost:8000
-* App running at http://localhost:8080/api/
 
 ## Run tests
 
 ```
-cd ~/go_packages/src/github.com/hashtock/hashtock-go
+cd $GOPATH/src/github.com/hashtock/hashtock-go
 ./run_tests.sh
 ```
 
@@ -44,7 +32,7 @@ cd ~/go_packages/src/github.com/hashtock/hashtock-go
 - Sell hash tag
 - Current bank value of a given hash tag, and how much does it have for sell
 - Currnet bank value of all hash tags it knows about, and how much does it have for sell
-- History of bank operations (**ToDo**)
+- History of bank operations
 
 **Market**:
 - Accepts buy offers for a given hashtag+price+amount
