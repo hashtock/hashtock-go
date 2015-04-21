@@ -187,3 +187,18 @@ hashtockControllers.controller('TagValuesCtrl',
         }
     }
 }]);
+
+// UI controller - more related to user actions (hide/show) than data
+hashtockControllers.controller('UICtrl', ['$scope',
+    function($scope) {
+        $scope.sidebarClass = '';
+
+        $scope.toggleSidebar = function(){
+            if ($(window).width() <= 767) {
+                $scope.sidebarClass = $scope.sidebarClass == 'sidebar-open' ? '' : 'sidebar-open'
+            } else {
+                $scope.sidebarClass = $scope.sidebarClass == 'sidebar-collapse' ? 'sidebar-open' : 'sidebar-collapse';
+            }
+        };
+    }
+]);
