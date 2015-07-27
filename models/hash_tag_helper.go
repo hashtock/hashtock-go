@@ -6,157 +6,157 @@ ToDo:
 */
 
 import (
-    "fmt"
-    "net/http"
-    "strings"
+	"fmt"
+	"net/http"
+	"strings"
 
-    "gopkg.in/mgo.v2"
-    "gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
-    "github.com/hashtock/hashtock-go/core"
+	"github.com/hashtock/hashtock-go/core"
 )
 
-func GetAllHashTags(req *http.Request) (hashTags []HashTag, err error) {
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+func GetAllHashTags(req *http.Request) (hashTags []core.HashTag, err error) {
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    err = col.Find(nil).Sort("-value").All(&hashTags)
-    return
+	err = col.Find(nil).Sort("-value").All(&hashTags)
+	return
 }
 
-func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *HashTag, err error) {
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+func GetHashTag(req *http.Request, hash_tag_name string) (hash_tag *core.HashTag, err error) {
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    err = col.Find(bson.M{"hashtag": hash_tag_name}).One(&hash_tag)
+	err = col.Find(bson.M{"hashtag": hash_tag_name}).One(&hash_tag)
 
-    if err == mgo.ErrNotFound {
-        msg := fmt.Sprintf("HashTag %#v not found", hash_tag_name)
-        err = core.NewNotFoundError(msg)
-    } else if err != nil {
-        err = core.NewInternalServerError(err.Error())
-    }
+	if err == mgo.ErrNotFound {
+		msg := fmt.Sprintf("HashTag %#v not found", hash_tag_name)
+		err = core.NewNotFoundError(msg)
+	} else if err != nil {
+		err = core.NewInternalServerError(err.Error())
+	}
 
-    return
+	return
 }
 
 //ToDo: Needs tests
-func GetOrCreateHashTag(req *http.Request, profile *Profile, hashTagName string) (hashTag *HashTag, err error) {
-    if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
-        return
-    }
+func GetOrCreateHashTag(req *http.Request, profile *Profile, hashTagName string) (hashTag *core.HashTag, err error) {
+	if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
+		return
+	}
 
-    hashTag = &HashTag{
-        HashTag: hashTagName,
-    }
+	hashTag = &core.HashTag{
+		HashTag: hashTagName,
+	}
 
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    err = col.Find(hashTag).One(&hashTag)
+	err = col.Find(hashTag).One(&hashTag)
 
-    if err == mgo.ErrNotFound {
-        hashTag.InBank = initialInBankValue
-        _, err = col.Upsert(hashTag, hashTag)
-    }
+	if err == mgo.ErrNotFound {
+		hashTag.InBank = initialInBankValue
+		_, err = col.Upsert(hashTag, hashTag)
+	}
 
-    if err != nil {
-        err = core.NewInternalServerError(err.Error())
-    }
+	if err != nil {
+		err = core.NewInternalServerError(err.Error())
+	}
 
-    return
+	return
 }
 
 func hashTagExists(req *http.Request, hashTagName string) (ok bool, err error) {
-    if strings.TrimSpace(hashTagName) != hashTagName || (hashTagName == "") {
-        return false, core.NewBadRequestError("Tag name invalid")
-    }
+	if strings.TrimSpace(hashTagName) != hashTagName || (hashTagName == "") {
+		return false, core.NewBadRequestError("Tag name invalid")
+	}
 
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    selector := HashTag{HashTag: hashTagName}
+	selector := core.HashTag{HashTag: hashTagName}
 
-    var count int
-    count, err = col.Find(selector).Count()
+	var count int
+	count, err = col.Find(selector).Count()
 
-    return count > 0 || err != nil, err
+	return count > 0 || err != nil, err
 }
 
 func hashTagExistsOrError(req *http.Request, hash_tag_name string) (err error) {
-    var exists bool
+	var exists bool
 
-    exists, err = hashTagExists(req, hash_tag_name)
-    if err != nil {
-        return
-    }
+	exists, err = hashTagExists(req, hash_tag_name)
+	if err != nil {
+		return
+	}
 
-    if !exists {
-        msg := fmt.Sprintf("Tag '%v' does not exist", hash_tag_name)
-        return core.NewNotFoundError(msg)
-    }
-    return
+	if !exists {
+		msg := fmt.Sprintf("Tag '%v' does not exist", hash_tag_name)
+		return core.NewNotFoundError(msg)
+	}
+	return
 }
 
 func CanUserCreateUpdateHashTag(req *http.Request, profile *Profile) (err error) {
-    if profile != nil && !profile.IsAdmin {
-        return core.NewForbiddenError()
-    }
+	if profile != nil && !profile.IsAdmin {
+		return core.NewForbiddenError()
+	}
 
-    return
+	return
 }
 
-func AddHashTag(req *http.Request, profile *Profile, tag HashTag) (newTag HashTag, err error) {
-    if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
-        return
-    }
+func AddHashTag(req *http.Request, profile *Profile, tag core.HashTag) (newTag core.HashTag, err error) {
+	if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
+		return
+	}
 
-    var exists bool
-    if exists, err = hashTagExists(req, tag.HashTag); err != nil {
-        return
-    } else if exists {
-        err = core.NewBadRequestError("Tag alread exists")
-        return
-    }
+	var exists bool
+	if exists, err = hashTagExists(req, tag.HashTag); err != nil {
+		return
+	} else if exists {
+		err = core.NewBadRequestError("Tag alread exists")
+		return
+	}
 
-    tag.InBank = initialInBankValue
+	tag.InBank = initialInBankValue
 
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    if _, err := col.Upsert(tag, tag); err != nil {
-        return tag, err
-    }
+	if _, err := col.Upsert(tag, tag); err != nil {
+		return tag, err
+	}
 
-    return tag, err
+	return tag, err
 }
 
-func UpdateHashTagValue(req *http.Request, profile *Profile, hash_tag_name string, new_value float64) (tag HashTag, err error) {
-    if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
-        return
-    }
+func UpdateHashTagValue(req *http.Request, profile *Profile, hash_tag_name string, new_value float64) (tag core.HashTag, err error) {
+	if err = CanUserCreateUpdateHashTag(req, profile); err != nil {
+		return
+	}
 
-    if new_value <= 0 {
-        err = core.NewBadRequestError("Value has to be positive")
-        return
-    }
+	if new_value <= 0 {
+		err = core.NewBadRequestError("Value has to be positive")
+		return
+	}
 
-    col := storage.Collection(HashTagCollectionName)
-    defer col.Database.Session.Close()
+	col := storage.Collection(HashTagCollectionName)
+	defer col.Database.Session.Close()
 
-    selector := HashTag{HashTag: hash_tag_name}
-    change := mgo.Change{
-        Update: bson.M{
-            "$set": HashTag{Value: new_value},
-        },
-        ReturnNew: true,
-    }
-    _, err = col.Find(selector).Apply(change, &tag)
+	selector := core.HashTag{HashTag: hash_tag_name}
+	change := mgo.Change{
+		Update: bson.M{
+			"$set": core.HashTag{Value: new_value},
+		},
+		ReturnNew: true,
+	}
+	_, err = col.Find(selector).Apply(change, &tag)
 
-    if err == mgo.ErrNotFound {
-        msg := fmt.Sprintf("HashTag %#v not found", hash_tag_name)
-        err = core.NewNotFoundError(msg)
-    }
+	if err == mgo.ErrNotFound {
+		msg := fmt.Sprintf("HashTag %#v not found", hash_tag_name)
+		err = core.NewNotFoundError(msg)
+	}
 
-    return
+	return
 }

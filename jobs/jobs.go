@@ -1,27 +1,20 @@
 package jobs
 
 import (
-    "time"
+	// "time"
 
-    "github.com/hashtock/hashtock-go/conf"
-    "github.com/hashtock/hashtock-go/models"
+	"github.com/hashtock/hashtock-go/conf"
+	"github.com/hashtock/hashtock-go/models"
 )
 
 // Starts all jobs with scheduling from config
 // Jobs run forever
 func StartJobs(cfg *conf.Config, storage *models.MgoStorage) {
-    bankOrderTicker := time.NewTicker(cfg.Jobs.BankOrders)
-    tagValueTicker := time.NewTicker(cfg.Jobs.TagValues)
+	// bankOrderTicker := time.NewTicker(cfg.Jobs.BankOrders)
 
-    go func() {
-        for range bankOrderTicker.C {
-            ExecuteBankOrders()
-        }
-    }()
-
-    go func() {
-        for range tagValueTicker.C {
-            FetchLatestTagValues(cfg)
-        }
-    }()
+	// go func() {
+	// 	for range bankOrderTicker.C {
+	// 		ExecuteBankOrders()
+	// 	}
+	// }()
 }

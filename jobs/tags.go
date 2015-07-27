@@ -1,88 +1,76 @@
 package jobs
 
 import (
-    "log"
-    "sync"
-    "time"
+	"log"
 
-    "github.com/hashtock/tracker/client"
+	"github.com/nats-io/nats"
 
-    "github.com/hashtock/hashtock-go/conf"
-    "github.com/hashtock/hashtock-go/models"
+	"github.com/hashtock/hashtock-go/core"
 )
 
-//TODO(error): Refactor & Tests!
-func FetchLatestTagValues(cfg *conf.Config) {
-    secret := cfg.Tracker.HMACSecret
-    host := cfg.Tracker.Url
-    if secret == "" || host == "" {
-        log.Println("job:FetchLatestTagValues: Incorrectly configured tracker. Missing values")
-        return
-    }
-    tracker, _ := client.NewTrackerPlain(secret, host)
+type TagValueWorker struct {
+	storage core.BankStorage
+	subject string
+	natsUrl string
+	conn    *nats.EncodedConn
+	sub     *nats.Subscription
+}
 
-    latestUpdate, err := models.LatestUpdateToHashTagValues(nil)
-    if err != nil {
-        log.Println("job:FetchLatestTagValues: Could not figure when last update run. Err:", err)
-        return
-    }
+func NewTagValueWorker(setter core.BankStorage, natsUrl string, msgSubject string) *TagValueWorker {
+	return &TagValueWorker{
+		storage: setter,
+		subject: msgSubject,
+		natsUrl: natsUrl,
+	}
+}
 
-    tagCountTrend, err := tracker.Trends(latestUpdate.Add(time.Second*1), time.Now())
-    if err != nil {
-        log.Println("job:FetchLatestTagValues: Failed when fetching data from tracker. Err:", err)
-        return
-    }
+func (t TagValueWorker) processMsg(counts map[string]int) {
+	for name, count := range counts {
+		if err := t.storage.TagSetValue(name, float64(count)); err != nil {
+			log.Printf("Error while updating value for tag %v to %v. %v", name, count, err.Error())
+		}
+	}
+}
 
-    tags := make(map[string]*models.HashTag, len(tagCountTrend))
-    for _, tagCounts := range tagCountTrend {
-        tag, err := models.GetOrCreateHashTag(nil, nil, tagCounts.Name)
-        if err != nil {
-            log.Println("job:FetchLatestTagValues: Could not deal with:", tagCounts.Name, "Because:", err)
-            continue
-        }
-        tags[tag.HashTag] = tag
-    }
+func (t *TagValueWorker) Start() (err error) {
+	if t.conn != nil || t.sub != nil {
+		return
+	}
 
-    for _, tagCounts := range tagCountTrend {
-        latestCount := time.Time{}
-        latestValue := tags[tagCounts.Name].Value
-        for _, count := range tagCounts.Counts {
-            tagValue := models.HashTagValue{
-                HashTag: tagCounts.Name,
-                Value:   float64(count.Count),
-                Date:    count.Date,
-            }
+	if err = t.connect(); err != nil {
+		return
+	}
 
-            if count.Date.After(latestCount) {
-                latestValue = float64(count.Count)
-            }
+	t.sub, err = t.conn.Subscribe(t.subject, t.processMsg)
+	return
+}
 
-            models.AddHashTagValue(nil, tagValue)
-        }
+func (t *TagValueWorker) Stop() {
+	if t.conn != nil {
+		t.conn.Close()
+		t.conn = nil
+	}
 
-        if tags[tagCounts.Name].Value != latestValue {
-            tags[tagCounts.Name].Value = latestValue
-        } else {
-            delete(tags, tagCounts.Name)
-        }
-    }
+	if t.sub != nil && t.sub.IsValid() {
+		t.sub.Unsubscribe()
+		t.sub = nil
+	}
+}
 
-    wg := sync.WaitGroup{}
-    for _, tag := range tags {
-        wg.Add(1)
-        go func(innerTag *models.HashTag) {
-            defer wg.Done()
-            if _, err := models.UpdateHashTagValue(nil, nil, innerTag.HashTag, innerTag.Value); err != nil {
-                log.Println("job:FetchLatestTagValues: Could not update:", innerTag.HashTag, "Because:", err)
-                return
-            }
-        }(tag)
-    }
-    wg.Wait()
+func (t *TagValueWorker) connect() error {
+	if t.conn != nil {
+		return nil
+	}
 
-    if len(tags) == 0 {
-        log.Println("job:FetchLatestTagValues: Tracker has no new tag values yet. Last time updated:", latestUpdate)
-    } else {
-        log.Printf("job:FetchLatestTagValues: Fetched latest tag values from tracker for %v tags. Last time updated: %v", len(tags), latestUpdate)
-    }
+	nc, err := nats.Connect(t.natsUrl)
+	if err != nil {
+		return err
+	}
+	conn, err := nats.NewEncodedConn(nc, "json")
+	if err != nil {
+		return err
+	}
+
+	t.conn = conn
+	return nil
 }
