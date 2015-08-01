@@ -130,7 +130,9 @@ func (o *orderService) validateOrder(order core.OrderBase) (err error) {
 		return core.NewBadRequestError("Order type not supported")
 	}
 
-	// Does tag exist?
+	if _, err := o.bank.Tag(order.HashTag); err != nil {
+		return core.NewBadRequestError("Can't place order for this tag")
+	}
 
 	return
 }

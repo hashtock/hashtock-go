@@ -15,9 +15,6 @@ const (
 	ERROR                   = "error"
 
 	TYPE_BANK OrderType = "bank"
-
-	// ACTION_BUY  OrderAction = "buy"
-	// ACTION_SELL             = "sell"
 )
 
 type Balance struct {
@@ -38,7 +35,6 @@ type TagShare struct {
 
 // User part of Order
 type OrderBase struct {
-	// Action   OrderAction `bson:"action" json:"action"`
 	Type     OrderType `bson:"type" json:"type"`
 	HashTag  string    `bson:"hashtag" json:"hashtag"`
 	Quantity float64   `bson:"quantity" json:"quantity"`
