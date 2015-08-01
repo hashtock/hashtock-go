@@ -1,64 +1,57 @@
 package webapp
 
 import (
-    "net/http"
+	"net/http"
 
-    "github.com/go-martini/martini"
-    "github.com/martini-contrib/oauth2"
-    "github.com/martini-contrib/render"
-    "github.com/martini-contrib/sessions"
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/pat"
+	authClient "github.com/hashtock/auth/client"
+	authCore "github.com/hashtock/auth/core"
+	"github.com/hashtock/service-tools/serialize"
 
-    "github.com/hashtock/hashtock-go/conf"
-    "github.com/hashtock/hashtock-go/models"
-    "github.com/hashtock/hashtock-go/services"
+	"github.com/hashtock/hashtock-go/core"
 )
 
-// ToDo: Propagate this instance of storage down to services and models
-func Handlers(cfg *conf.Config, storage *models.MgoStorage) http.Handler {
-    authCfg := cfg.GAuthConfig()
+const UserContextKey = "user"
 
-    oauth2.PathLogin = "/auth/login/"
-    oauth2.PathLogout = "/auth/logout/"
-    oauth2.PathCallback = "/auth/oauth2callback"
+type Options struct {
+	PortfolioStorage core.PortfolioStorage
+	BankStorage      core.BankStorage
+	OrderStorage     core.OrderStorage
+	Serializer       serialize.Serializer
+	WhoClient        authCore.Who
+}
 
-    cookieStore := sessions.NewCookieStore([]byte(cfg.General.SessionSecret))
+func Handlers(options Options) http.Handler {
+	n := negroni.New(
+		negroni.NewRecovery(),
+		negroni.NewLogger(),
+		authClient.NewAuthMiddleware(options.WhoClient),
+	)
 
-    m := martini.Classic()
-    m.Use(martini.Static("static", martini.StaticOptions{Prefix: "static"}))
-    m.Use(martini.Static("static", martini.StaticOptions{IndexFile: "index.html"}))
-    m.Use(sessions.Sessions(cfg.General.SessionKey, cookieStore))
-    m.Use(oauth2.Google(&authCfg))
-    m.Use(render.Renderer())
-    m.Use(services.EnforceAuth(oauth2.PathLogin, "/auth/"))
+	ps := portfolioService{options.PortfolioStorage, options.Serializer}
+	bs := bankService{options.BankStorage, options.Serializer}
+	os := orderService{
+		storage:    options.OrderStorage,
+		bank:       options.BankStorage,
+		serializer: options.Serializer,
+	}
 
-    m.Group("/api", func(r martini.Router) {
-        r.Group("/user", func(sr martini.Router) {
-            sr.Get("/", services.CurrentProfile).Name("User:CurentUser")
-        })
+	m := pat.New()
+	m.Get("/portfolio/{tag}/", ps.PortfolioTagInfo).Name("Portfolio:TagInfo")
+	m.Get("/portfolio/", ps.Portfolio).Name("Portfolio:All")
+	m.Get("/balance/", ps.PortfolioBalance).Name("Portfolio:Balance")
 
-        r.Group("/portfolio", func(sr martini.Router) {
-            sr.Get("/", services.Portfolio).Name("Portfolio:All")
-            sr.Get("/:tag/", services.PortfolioTagInfo).Name("Portfolio:TagInfo")
-        })
+	m.Get("/bank/{tag}/", bs.TagInfo).Name("Bank:TagInfo")
+	m.Get("/bank/", bs.ListOfAllHashTags).Name("Bank:Tags")
 
-        r.Group("/tag", func(sr martini.Router) {
-            sr.Get("/", services.ListOfAllHashTags).Name("Tag:Tags")
-            sr.Post("/", services.NewHashTag).Name("Tag:newTag")
-            sr.Get("/:tag/", services.TagInfo).Name("Tag:TagInfo")
-            sr.Put("/:tag/", services.SetTagValue).Name("Tag:setTagValue")
-            sr.Get("/:tag/values/", services.TagValues).Name("Tag:TagValues")
-        })
+	m.Get("/order/history/", os.CompletedOrders).Name("Order:CompletedOrders")
+	m.Get("/order/{uuid}/", os.OrderDetails).Name("Order:OrderDetails")
+	m.Get("/order/", os.ActiveOrders).Name("Order:Orders")
+	m.Delete("/order/:uuid/", os.CancelOrder).Name("Order:CancelOrder")
+	m.Post("/order/", os.NewOrder).Name("Order:NewOrder")
 
-        r.Group("/order", func(sr martini.Router) {
-            sr.Get("/", services.ActiveOrders).Name("Order:Orders")
-            sr.Post("/", services.NewOrder).Name("Order:NewOrder")
-            sr.Get("/history/", services.CompletedOrder).Name("Order:CompletedOrders")
-            sr.Get("/:uuid/", services.OrderDetails).Name("Order:OrderDetails")
-            sr.Delete("/:uuid/", services.CancelOrder).Name("Order:CancelOrder")
-        })
+	n.UseHandler(m)
 
-        r.Get("/", apiDefinition)
-    })
-
-    return m
+	return n
 }

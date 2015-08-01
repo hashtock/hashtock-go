@@ -1,98 +1,44 @@
 {
 	"ImportPath": "github.com/hashtock/hashtock-go",
-	"GoVersion": "go1.4.1",
+	"GoVersion": "go1.4.2",
 	"Deps": [
 		{
-			"ImportPath": "code.google.com/p/go-uuid/uuid",
-			"Comment": "null-12",
-			"Rev": "7dda39b2e7d5e265014674c5af696ba4186679e9"
-		},
-		{
-			"ImportPath": "github.com/boj/redistore",
-			"Comment": "v1-2-g0cd5558",
-			"Rev": "0cd55584b172cefd31c4cb84e2904585d898c7b2"
-		},
-		{
-			"ImportPath": "github.com/codegangsta/inject",
-			"Comment": "v1.0-rc1-10-g33e0aa1",
-			"Rev": "33e0aa1cb7c019ccc3fbe049a8262a6403d30504"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/internal",
-			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
-		},
-		{
-			"ImportPath": "github.com/garyburd/redigo/redis",
-			"Rev": "535138d7bcd717d6531c701ef5933d98b1866257"
-		},
-		{
-			"ImportPath": "github.com/go-martini/martini",
-			"Comment": "v1.0-121-gd460785",
-			"Rev": "d46078590564902aecd957f2034647a5786d0155"
+			"ImportPath": "github.com/codegangsta/negroni",
+			"Comment": "v0.1-70-gc7477ad",
+			"Rev": "c7477ad8e330bef55bf1ebe300cf8aa67c492d1b"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
 			"Rev": "50c25fb3b2b3b3cc724e9b6ac75fb44b3bccd0da"
 		},
 		{
-			"ImportPath": "github.com/gorilla/securecookie",
-			"Rev": "1b0c7f6e9ab3d7f500fd7d50c7ad835ff428139b"
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "660d31f8602b95058fed6833debf113e85350868"
 		},
 		{
-			"ImportPath": "github.com/gorilla/sessions",
-			"Rev": "aa5e036e6c44aec69a32eb41097001978b29ad31"
+			"ImportPath": "github.com/gorilla/pat",
+			"Rev": "ae2e162c4b2ae96aa66b596b2c18f17834299ed0"
 		},
 		{
-			"ImportPath": "github.com/hashtock/tracker/client",
-			"Rev": "81ace01b98004ef6d916f4d28a1ba3371788553e"
+			"ImportPath": "github.com/hashtock/auth/client",
+			"Rev": "14ede624ad6d3e0927c0f7dafc8ab70d97e9ad2e"
 		},
 		{
-			"ImportPath": "github.com/hashtock/tracker/conf",
-			"Rev": "81ace01b98004ef6d916f4d28a1ba3371788553e"
+			"ImportPath": "github.com/hashtock/auth/core",
+			"Rev": "14ede624ad6d3e0927c0f7dafc8ab70d97e9ad2e"
 		},
 		{
-			"ImportPath": "github.com/hashtock/tracker/core",
-			"Rev": "81ace01b98004ef6d916f4d28a1ba3371788553e"
+			"ImportPath": "github.com/hashtock/service-tools/serialize",
+			"Rev": "58bbb0fe5b89f8e988d840850b6f87d92751b381"
 		},
 		{
-			"ImportPath": "github.com/martini-contrib/oauth2",
-			"Rev": "383220cdf3349109f5ced723c921d4d76478176c"
+			"ImportPath": "github.com/nats-io/nats",
+			"Comment": "v1.0.9-1-g20b0666",
+			"Rev": "20b066697dfb0705615658394a00262c1523e9e3"
 		},
 		{
-			"ImportPath": "github.com/martini-contrib/render",
-			"Rev": "b65063311fac6cbf84d3538f5715f7847e648322"
-		},
-		{
-			"ImportPath": "github.com/martini-contrib/sessions",
-			"Rev": "fa13114fbcf036dff8185d728651d85fcef772db"
-		},
-		{
-			"ImportPath": "github.com/oxtoacart/bpool",
-			"Rev": "923fab21d0624a469b877a05bbfc562c1c26c663"
-		},
-		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "7dbad50ab5b31073856416cdcfeb2796d682f844"
-		},
-		{
-			"ImportPath": "golang.org/x/oauth2",
-			"Rev": "11c60b6f71a6ad48ed6f93c65fa4c6f9b1b5b46a"
-		},
-		{
-			"ImportPath": "google.golang.org/api/googleapi",
-			"Rev": "78fbf5a598d6e7072c5a513abce3bfa4159ebb13"
-		},
-		{
-			"ImportPath": "google.golang.org/api/plus/v1",
-			"Rev": "78fbf5a598d6e7072c5a513abce3bfa4159ebb13"
-		},
-		{
-			"ImportPath": "google.golang.org/cloud/compute/metadata",
-			"Rev": "f645e8ac49f57ff0393fb2da078856263dba9ddc"
-		},
-		{
-			"ImportPath": "google.golang.org/cloud/internal",
-			"Rev": "f645e8ac49f57ff0393fb2da078856263dba9ddc"
+			"ImportPath": "github.com/pborman/uuid",
+			"Rev": "ca53cad383cad2479bbba7f7a1a05797ec1386e4"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",

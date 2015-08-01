@@ -1,74 +1,74 @@
 package core
 
 import (
-    "net/http"
+	"net/http"
 )
 
 type HttpErrorer interface {
-    error
-    ErrCode() int
+	error
+	ErrCode() int
 }
 
 type httpError struct {
-    Code    int    `json:"code"`
-    Message string `json:"error"`
+	Code    int    `json:"code"`
+	Message string `json:"error"`
 }
 
 func (e httpError) Error() string {
-    return e.Message
+	return e.Message
 }
 
 func (e httpError) ErrCode() int {
-    return e.Code
+	return e.Code
 }
 
 func ErrToErrorer(err error) (int, HttpErrorer) {
-    var (
-        httpErr httpError
-        ok      bool
-    )
+	var (
+		httpErr httpError
+		ok      bool
+	)
 
-    if httpErr, ok = err.(httpError); !ok {
-        httpErr = httpError{
-            Code:    http.StatusInternalServerError,
-            Message: err.Error(),
-        }
-    }
+	if httpErr, ok = err.(httpError); !ok {
+		httpErr = httpError{
+			Code:    http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
 
-    return httpErr.ErrCode(), httpErr
+	return httpErr.ErrCode(), httpErr
 }
 
 func NewHttpError(code int, message string) httpError {
-    return httpError{
-        Code:    code,
-        Message: message,
-    }
+	return httpError{
+		Code:    code,
+		Message: message,
+	}
 }
 
 func NewNotFoundError(message string) httpError {
-    return httpError{
-        Code:    http.StatusNotFound,
-        Message: message,
-    }
+	return httpError{
+		Code:    http.StatusNotFound,
+		Message: message,
+	}
 }
 
 func NewForbiddenError() httpError {
-    return httpError{
-        Code:    http.StatusForbidden,
-        Message: http.StatusText(http.StatusForbidden),
-    }
+	return httpError{
+		Code:    http.StatusForbidden,
+		Message: http.StatusText(http.StatusForbidden),
+	}
 }
 
 func NewBadRequestError(message string) httpError {
-    return httpError{
-        Code:    http.StatusBadRequest,
-        Message: message,
-    }
+	return httpError{
+		Code:    http.StatusBadRequest,
+		Message: message,
+	}
 }
 
 func NewInternalServerError(message string) httpError {
-    return httpError{
-        Code:    http.StatusInternalServerError,
-        Message: message,
-    }
+	return httpError{
+		Code:    http.StatusInternalServerError,
+		Message: message,
+	}
 }
