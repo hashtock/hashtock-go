@@ -10,22 +10,22 @@ import (
 
 	"github.com/hashtock/hashtock-go/conf"
 	"github.com/hashtock/hashtock-go/jobs"
-	"github.com/hashtock/hashtock-go/models"
+	"github.com/hashtock/hashtock-go/storage"
 	"github.com/hashtock/hashtock-go/webapp"
 )
 
 func main() {
 	cfg := conf.GetConfig()
-	storage, err := models.InitMongoStorage(cfg.General.DB, cfg.General.DBName)
+	dataStore, err := storage.InitMongoStorage(cfg.General.DB, cfg.General.DBName)
 	if err != nil {
 		log.Fatalln(err)
 	}
 
-	tagWorker := jobs.NewTagValueWorker(storage, nats.DefaultURL, "tags.counts")
+	tagWorker := jobs.NewTagValueWorker(dataStore, nats.DefaultURL, "tags.counts")
 	tagWorker.Start()
 	defer tagWorker.Stop()
 
-	orderWorker := jobs.NewOrderWorker(storage, storage, storage, cfg.Jobs.BankOrders)
+	orderWorker := jobs.NewOrderWorker(dataStore, dataStore, dataStore, cfg.Jobs.BankOrders)
 	orderWorker.Start()
 	defer orderWorker.Stop()
 
@@ -35,9 +35,9 @@ func main() {
 	}
 	options := webapp.Options{
 		Serializer:       &serialize.WebAPISerializer{},
-		PortfolioStorage: storage,
-		BankStorage:      storage,
-		OrderStorage:     storage,
+		PortfolioStorage: dataStore,
+		BankStorage:      dataStore,
+		OrderStorage:     dataStore,
 		WhoClient:        whoClient,
 	}
 
