@@ -3,7 +3,6 @@ package conf
 import (
 	"fmt"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -12,36 +11,24 @@ const (
 )
 
 const (
-	keyAPP_ADDRESS                = "APP_ADDRESS"
-	keyAuthAddress                = "AUTH_ADDRESS"
-	keySERVE_ADDR                 = "SERVE_ADDR"
-	keyDB                         = "DB"
-	keyDB_NAME                    = "DB_NAME"
-	keySESSION_KEY                = "SESSION_KEY"
-	keySESSION_SECRET             = "SESSION_SECRET"
-	keyTRACKER_URL                = "TRACKER_URL"
-	keyTRACKER_SECRET             = "TRACKER_SECRET"
-	keyGOOGLE_OAUTH_CLIENT_ID     = "GOOGLE_OAUTH_CLIENT_ID"
-	keyGOOGLE_OAUTH_CLIENT_SECRET = "GOOGLE_OAUTH_CLIENT_SECRET"
-	keyJOB_BANK_ORDERS            = "JOB_BANK_ORDERS"
-	keyJOB_TAG_VALUES             = "JOB_TAG_VALUES"
-	keyADMIN                      = "ADMIN"
+	keyAPP_ADDRESS     = "APP_ADDRESS"
+	keyAuthAddress     = "AUTH_ADDRESS"
+	keySERVE_ADDR      = "SERVE_ADDR"
+	keyDB              = "DB"
+	keyDB_NAME         = "DB_NAME"
+	keyJOB_BANK_ORDERS = "JOB_BANK_ORDERS"
+	keyJOB_TAG_VALUES  = "JOB_TAG_VALUES"
+	keyADMIN           = "ADMIN"
 )
 
 var cfgHelp = map[string]string{
-	keyAPP_ADDRESS:                "External app URL",
-	keyAuthAddress:                "Host and port for the auth service",
-	keySERVE_ADDR:                 "Internal app host:port for binding",
-	keyDB:                         "Location of MongoDB: mongodb://user:password@host:port/",
-	keyDB_NAME:                    "Name of MongoDB to use",
-	keySESSION_KEY:                "Session key name",
-	keySESSION_SECRET:             "Session secret",
-	keyTRACKER_URL:                "Tag tracker URL",
-	keyTRACKER_SECRET:             "Shared secret with tracker",
-	keyGOOGLE_OAUTH_CLIENT_ID:     "Google OAuth2 client id",
-	keyGOOGLE_OAUTH_CLIENT_SECRET: "Google OAuth2 client secret",
-	keyJOB_BANK_ORDERS:            "Time interval for running bank jobs",
-	keyJOB_TAG_VALUES:             "Time interval for pulling tag values from tracker",
+	keyAPP_ADDRESS:     "External app URL",
+	keyAuthAddress:     "Host and port for the auth service",
+	keySERVE_ADDR:      "Internal app host:port for binding",
+	keyDB:              "Location of MongoDB: mongodb://user:password@host:port/",
+	keyDB_NAME:         "Name of MongoDB to use",
+	keyJOB_BANK_ORDERS: "Time interval for running bank jobs",
+	keyJOB_TAG_VALUES:  "Time interval for pulling tag values from tracker",
 }
 
 var defaultDurations = map[string]time.Duration{
@@ -96,25 +83,9 @@ func loadConfig() {
 	cfg.General.ServeAddr = mustHaveValue(keySERVE_ADDR)
 	cfg.General.DB = mustHaveValue(keyDB)
 	cfg.General.DBName = mustHaveValue(keyDB_NAME)
-	cfg.General.SessionKey = mustHaveValue(keySESSION_KEY)
-	cfg.General.SessionSecret = mustHaveValue(keySESSION_SECRET)
-
-	cfg.Tracker.Url = mustHaveValue(keyTRACKER_URL)
-	cfg.Tracker.HMACSecret = mustHaveValue(keyTRACKER_SECRET)
-
-	cfg.GoogleOAuth.ClientID = mustHaveValue(keyGOOGLE_OAUTH_CLIENT_ID)
-	cfg.GoogleOAuth.ClientSecret = mustHaveValue(keyGOOGLE_OAUTH_CLIENT_SECRET)
 
 	cfg.Jobs.BankOrders = getEnvOrDefaultDuration(keyJOB_BANK_ORDERS)
 	cfg.Jobs.TagValues = getEnvOrDefaultDuration(keyJOB_TAG_VALUES)
-
-	adminKey := makeKey(keyADMIN)
-	for _, e := range os.Environ() {
-		keyValue := strings.Split(e, "=")
-		if strings.HasPrefix(keyValue[0], adminKey) {
-			cfg.General.Admin = append(cfg.General.Admin, keyValue[1])
-		}
-	}
 }
 
 func PrintConfHelp() {
@@ -124,12 +95,6 @@ func PrintConfHelp() {
 		keySERVE_ADDR,
 		keyDB,
 		keyDB_NAME,
-		keySESSION_KEY,
-		keySESSION_SECRET,
-		keyTRACKER_URL,
-		keyTRACKER_SECRET,
-		keyGOOGLE_OAUTH_CLIENT_ID,
-		keyGOOGLE_OAUTH_CLIENT_SECRET,
 		keyJOB_BANK_ORDERS,
 		keyJOB_TAG_VALUES,
 	}

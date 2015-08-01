@@ -11,6 +11,15 @@ import (
 	"github.com/hashtock/hashtock-go/core"
 )
 
+const (
+	HashTagCollectionName  = "HashTag"
+	OrderCollectionName    = "Order"
+	TagShareCollectionName = "TagShare"
+
+	initialInBankValue = 100.0
+	StartingFounds     = 1000
+)
+
 type MgoStorage struct {
 	session *mgo.Session
 	db      string

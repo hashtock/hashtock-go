@@ -130,6 +130,8 @@ func (o *orderService) validateOrder(order core.OrderBase) (err error) {
 		return core.NewBadRequestError("Order type not supported")
 	}
 
+	// Does tag exist?
+
 	return
 }
 

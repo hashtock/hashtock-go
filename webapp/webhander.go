@@ -22,7 +22,6 @@ type Options struct {
 	WhoClient        authCore.Who
 }
 
-// ToDo: Propagate this instance of storage down to services and models
 func Handlers(options Options) http.Handler {
 	n := negroni.New(
 		negroni.NewRecovery(),
