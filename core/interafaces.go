@@ -4,14 +4,14 @@ type PortfolioStorage interface {
 	PortfolioShares(userId string) ([]TagShare, error)
 	PortfolioShare(userId string, tag string, strict bool) (*TagShare, error)
 	PortfolioBalance(userId string) (Balance, error)
-	PortfolioShareUpdateQuantity(userId string, tag string, quantity float64) error
+	// PortfolioShareUpdateQuantity(userId string, tag string, quantity float64) error
 }
 
 type BankStorage interface {
 	Tags() ([]HashTag, error)
 	Tag(tag string) (*HashTag, error)
 	TagSetValue(tag string, value float64) error
-	TagUpdateInBank(tag string, quantity float64) error
+	// TagUpdateInBank(tag string, quantity float64) error
 }
 
 type OrderStorage interface {

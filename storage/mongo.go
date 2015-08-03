@@ -212,43 +212,43 @@ func (m *MgoStorage) PortfolioBalance(userId string) (balance core.Balance, err 
 	return
 }
 
-func (m *MgoStorage) PortfolioShareUpdateQuantity(userId string, tag string, quantity float64) error {
-	var tagShare core.TagShare
-	col := storage.Collection(TagShareCollectionName)
-	defer col.Database.Session.Close()
+// func (m *MgoStorage) PortfolioShareUpdateQuantity(userId string, tag string, quantity float64) error {
+// 	var tagShare core.TagShare
+// 	col := storage.Collection(TagShareCollectionName)
+// 	defer col.Database.Session.Close()
 
-	selector := bson.M{
-		"hashtag": tag,
-		"user_id": userId,
-	}
+// 	selector := bson.M{
+// 		"hashtag": tag,
+// 		"user_id": userId,
+// 	}
 
-	query := col.Find(selector)
-	cnt, err := query.Count()
-	if err != nil {
-		return err
-	}
+// 	query := col.Find(selector)
+// 	cnt, err := query.Count()
+// 	if err != nil {
+// 		return err
+// 	}
 
-	// Need new tag
-	if cnt == 0 {
-		if quantity < 0 {
-			return errors.New("Selling short is not allowed")
-		}
-		tagShare = core.TagShare{
-			HashTag:  tag,
-			UserID:   userId,
-			Quantity: quantity,
-		}
-		return col.Insert(&tagShare)
-	}
+// 	// Need new tag
+// 	if cnt == 0 {
+// 		if quantity < 0 {
+// 			return errors.New("Selling short is not allowed")
+// 		}
+// 		tagShare = core.TagShare{
+// 			HashTag:  tag,
+// 			UserID:   userId,
+// 			Quantity: quantity,
+// 		}
+// 		return col.Insert(&tagShare)
+// 	}
 
-	change := mgo.Change{
-		Update: bson.M{
-			"$inc": bson.M{"quantity": quantity},
-		},
-	}
-	_, err = query.Apply(change, &tagShare)
-	return err
-}
+// 	change := mgo.Change{
+// 		Update: bson.M{
+// 			"$inc": bson.M{"quantity": quantity},
+// 		},
+// 	}
+// 	_, err = query.Apply(change, &tagShare)
+// 	return err
+// }
 
 // Bank interface
 
@@ -256,7 +256,58 @@ func (m *MgoStorage) Tags() (hashTags []core.HashTag, err error) {
 	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
-	err = col.Find(nil).Sort("-value").All(&hashTags)
+	// unwind has to have at least 1 order, otherwise tag will be skipped
+	preProject := bson.M{
+		"$project": bson.M{
+			"hashtag": 1,
+			"value":   1,
+			"orders": bson.M{
+				"$ifNull": []interface{}{
+					"$orders",
+					[]interface{}{
+						bson.M{
+							"quantity": 0,
+						},
+					},
+				},
+			},
+		},
+	}
+
+	group := bson.M{
+		"$group": bson.M{
+			"_id": bson.M{
+				"hashtag": "$hashtag",
+				"value":   "$value",
+			},
+			"in_bank": bson.M{
+				"$sum": "$orders.quantity",
+			},
+		},
+	}
+
+	project := bson.M{
+		"$project": bson.M{
+			"_id": 0,
+			"in_bank": bson.M{
+				"$subtract": []interface{}{
+					initialInBankValue,
+					"$in_bank",
+				},
+			},
+			"hashtag": "$_id.hashtag",
+			"value":   "$_id.value",
+		},
+	}
+
+	pipeline := []bson.M{
+		preProject,
+		bson.M{"$unwind": "$orders"},
+		group,
+		project,
+	}
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&hashTags)
 	return
 }
 
@@ -296,7 +347,7 @@ func (m *MgoStorage) TagSetValue(hashTagName string, value float64) error {
 		hashTag = core.HashTag{
 			HashTag: hashTagName,
 			Value:   value,
-			InBank:  initialInBankValue,
+			// InBank:  initialInBankValue,
 		}
 		return col.Insert(hashTag)
 	}
@@ -304,32 +355,32 @@ func (m *MgoStorage) TagSetValue(hashTagName string, value float64) error {
 	return err
 }
 
-func (m *MgoStorage) TagUpdateInBank(tag string, quantity float64) error {
-	var hashTag core.HashTag
+// func (m *MgoStorage) TagUpdateInBank(tag string, quantity float64) error {
+// 	var hashTag core.HashTag
 
-	col := m.collection(HashTagCollectionName)
-	defer col.Database.Session.Close()
+// 	col := m.collection(HashTagCollectionName)
+// 	defer col.Database.Session.Close()
 
-	selector := bson.M{"hashtag": tag}
-	if err := col.Find(selector).One(&hashTag); err != nil {
-		return err
-	}
+// 	selector := bson.M{"hashtag": tag}
+// 	if err := col.Find(selector).One(&hashTag); err != nil {
+// 		return err
+// 	}
 
-	newInBank := hashTag.InBank + quantity
-	if newInBank < 0.0 {
-		return errors.New("Not enough shares of in bank.")
-	} else if newInBank > 100.0 {
-		return errors.New("Bank can not own more then 100% of shres")
-	}
+// 	newInBank := hashTag.InBank + quantity
+// 	if newInBank < 0.0 {
+// 		return errors.New("Not enough shares of in bank.")
+// 	} else if newInBank > 100.0 {
+// 		return errors.New("Bank can not own more then 100% of shres")
+// 	}
 
-	change := mgo.Change{
-		Update: bson.M{
-			"$inc": bson.M{"in_bank": quantity},
-		},
-	}
-	_, err := col.Find(selector).Apply(change, &hashTag)
-	return err
-}
+// 	change := mgo.Change{
+// 		Update: bson.M{
+// 			"$inc": bson.M{"in_bank": quantity},
+// 		},
+// 	}
+// 	_, err := col.Find(selector).Apply(change, &hashTag)
+// 	return err
+// }
 
 // Order interface
 
