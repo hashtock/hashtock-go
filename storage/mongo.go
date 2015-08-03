@@ -13,11 +13,42 @@ import (
 
 const (
 	HashTagCollectionName  = "HashTag"
-	OrderCollectionName    = "Order"
 	TagShareCollectionName = "TagShare"
 
 	initialInBankValue = 100.0
 	StartingFounds     = 1000
+)
+
+var (
+	projectAsOrder = bson.M{
+		"$project": bson.M{
+			"_id": 0,
+
+			// OrderBase
+			"type":     "$orders.type",
+			"hashtag":  "$orders.hashtag",
+			"quantity": "$orders.quantity",
+
+			// OrderSystem
+			"uuid":        "$orders.uuid",
+			"user_id":     "$orders.user_id",
+			"complete":    "$orders.complete",
+			"value":       "$orders.value",
+			"created_at":  "$orders.created_at",
+			"executed_at": "$orders.executed_at",
+			"resolution":  "$orders.resolution",
+			"notes":       "$orders.notes",
+		},
+	}
+	newestFirst = bson.M{
+		"$sort": bson.M{"created_at": -1},
+	}
+	oldestFirst = bson.M{
+		"$sort": bson.M{"created_at": 1},
+	}
+	hashtagAZ = bson.M{
+		"$sort": bson.M{"hashtag": 1},
+	}
 )
 
 type MgoStorage struct {
@@ -61,19 +92,61 @@ func (m *MgoStorage) collection(collectionName string) *mgo.Collection {
 	return col
 }
 
+// Helpers
+
+func (m *MgoStorage) ordersBySelectorPipeline(selector bson.M, nextSteps ...bson.M) []bson.M {
+	pipeline := []bson.M{
+		bson.M{"$match": selector},
+		bson.M{"$unwind": "$orders"},
+		bson.M{"$match": selector},
+	}
+
+	pipeline = append(pipeline, nextSteps...)
+
+	return pipeline
+}
+
 // Portfolio interface
 
 func (m *MgoStorage) PortfolioShares(userId string) (shares []core.TagShare, err error) {
-	col := m.collection(TagShareCollectionName)
+	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
-	selector := bson.M{"user_id": userId}
-	err = col.Find(selector).Sort("hashtag").All(&shares)
+	selector := bson.M{
+		"orders.user_id":    userId,
+		"orders.resolution": core.SUCCESS,
+	}
+
+	group := bson.M{
+		"$group": bson.M{
+			"_id": bson.M{
+				"hashtag": "$hashtag",
+				"user_id": "$orders.user_id",
+			},
+			"quantity": bson.M{
+				"$sum": "$orders.quantity",
+			},
+		},
+	}
+
+	project := bson.M{
+		"$project": bson.M{
+			"_id":      0,
+			"hashtag":  "$_id.hashtag",
+			"user_id":  "$_id.user_id",
+			"quantity": 1,
+		},
+	}
+
+	pipeline := m.ordersBySelectorPipeline(selector, group, project, hashtagAZ)
+
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&shares)
 	return
 }
 
 func (m *MgoStorage) PortfolioShare(userId string, hashTagName string, strict bool) (tagShare *core.TagShare, err error) {
-	col := storage.Collection(TagShareCollectionName)
+	col := storage.Collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	tagShare = &core.TagShare{
@@ -102,31 +175,29 @@ func (m *MgoStorage) PortfolioShare(userId string, hashTagName string, strict bo
 }
 
 func (m *MgoStorage) PortfolioBalance(userId string) (balance core.Balance, err error) {
-	col := m.collection(OrderCollectionName)
+	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
-	query := bson.M{
-		"user_id":    userId,
-		"resolution": core.SUCCESS,
+	selector := bson.M{
+		"orders.user_id":    userId,
+		"orders.resolution": core.SUCCESS,
 	}
 
-	pipeline := []bson.M{
-		bson.M{"$match": query},
-
-		bson.M{
-			"$group": bson.M{
-				"_id":  "$user_id",
-				"cash": bson.M{"$sum": "$value"},
-			},
-		},
-
-		bson.M{
-			"$project": bson.M{
-				"_id":  0,
-				"cash": 1,
-			},
+	group := bson.M{
+		"$group": bson.M{
+			"_id":  "$user_id",
+			"cash": bson.M{"$sum": "$value"},
 		},
 	}
+
+	project := bson.M{
+		"$project": bson.M{
+			"_id":  0,
+			"cash": 1,
+		},
+	}
+
+	pipeline := m.ordersBySelectorPipeline(selector, group, project)
 
 	pipe := col.Pipe(pipeline)
 	err = pipe.One(&balance)
@@ -263,53 +334,65 @@ func (m *MgoStorage) TagUpdateInBank(tag string, quantity float64) error {
 // Order interface
 
 func (m *MgoStorage) Order(userId string, orderId string) (order *core.Order, err error) {
-	col := m.collection(OrderCollectionName)
+	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"user_id": userId,
-		"uuid":    orderId,
+		"orders.user_id": userId,
+		"orders.uuid":    orderId,
 	}
 
-	err = col.Find(selector).One(&order)
+	pipeline := m.ordersBySelectorPipeline(selector, projectAsOrder)
+	pipe := col.Pipe(pipeline)
+	err = pipe.One(&order)
+
 	if err == mgo.ErrNotFound {
 		notFoundMsg := fmt.Sprintf("Order %#v not found", orderId)
 		err = core.NewNotFoundError(notFoundMsg)
 	}
+	fmt.Println("Order err:", err)
 	return
 }
 
 func (m *MgoStorage) Orders(userId string, complete bool, tag string, resolution string) (orders []core.Order, err error) {
-	col := m.collection(OrderCollectionName)
+	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"complete": complete,
-		"user_id":  userId,
+		"orders.complete": complete,
+		"orders.user_id":  userId,
 	}
-
 	if tag != "" {
-		selector["hashtag"] = tag
+		selector["orders.hashtag"] = tag
 	}
-
 	if resolution != "" {
-		selector["resolution"] = resolution
+		selector["orders.resolution"] = resolution
 	}
 
-	err = col.Find(selector).Sort("-created_at").All(&orders)
+	pipeline := m.ordersBySelectorPipeline(selector, projectAsOrder, newestFirst)
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&orders)
 	return
 }
 
 func (m *MgoStorage) AddOrder(order *core.Order) (err error) {
-	col := storage.collection(OrderCollectionName)
+	col := storage.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
-	err = col.Insert(order)
+	selector := bson.M{
+		"hashtag": order.HashTag,
+	}
+
+	change := bson.M{
+		"$addToSet": bson.M{"orders": order},
+	}
+
+	err = col.Update(selector, change)
 	return
 }
 
 func (m *MgoStorage) DeleteOrder(userId string, orderId string) (err error) {
-	col := storage.collection(OrderCollectionName)
+	col := storage.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
@@ -317,42 +400,53 @@ func (m *MgoStorage) DeleteOrder(userId string, orderId string) (err error) {
 		"uuid":    orderId,
 	}
 
-	err = col.Remove(selector)
+	change := bson.M{
+		"$pull": bson.M{
+			"orders": selector,
+		},
+	}
+
+	q := bson.M{}
+	for key, val := range selector {
+		q["orders."+key] = val
+	}
+
+	err = col.Update(q, change)
 	return
 }
 
 // OrderExecuter interface
 
 func (m *MgoStorage) OrdersToExecute() (orders []core.Order, err error) {
-	col := m.collection(OrderCollectionName)
+	col := m.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"complete": false,
+		"orders.complete": false,
 	}
 
-	err = col.Find(selector).Sort("-created_at").All(&orders)
+	pipeline := m.ordersBySelectorPipeline(selector, projectAsOrder, oldestFirst)
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&orders)
 	return
 }
 
 func (m *MgoStorage) OrderCompleted(orderId string, status core.OrderResolution, notes string) (err error) {
-	var order core.Order
-	col := storage.collection(OrderCollectionName)
+	col := storage.collection(HashTagCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"uuid": orderId,
+		"orders.uuid": orderId,
 	}
-	change := mgo.Change{
-		Update: bson.M{
-			"$set": bson.M{
-				"complete":    true,
-				"resolution":  status,
-				"notes":       notes,
-				"executed_at": time.Now(),
-			},
+	change := bson.M{
+		"$set": bson.M{
+			"orders.$.complete":    true,
+			"orders.$.resolution":  status,
+			"orders.$.notes":       notes,
+			"orders.$.executed_at": time.Now(),
 		},
 	}
-	_, err = col.Find(selector).Apply(change, &order)
+
+	err = col.Update(selector, change)
 	return
 }
