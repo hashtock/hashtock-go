@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	HashTagCollectionName  = "HashTag"
-	OrderCollectionName    = "Order"
-	TagShareCollectionName = "TagShare"
+	BankCollectionName  = "Bank"
+	OrderCollectionName = "Orders"
 
 	initialInBankValue = 100.0
 	StartingFounds     = 1000
@@ -49,44 +48,138 @@ func InitMongoStorage(dbUrl string, dbName string) (*MgoStorage, error) {
 	return storage, nil
 }
 
-// ToDo: Remove
-func (m *MgoStorage) Collection(collectionName string) *mgo.Collection {
-	session := m.session.Copy()
-	return session.DB(m.dbName).C(collectionName)
-}
-
 func (m *MgoStorage) collection(collectionName string) *mgo.Collection {
 	lsession := m.session.Copy()
 	col := lsession.DB(m.dbName).C(collectionName)
 	return col
 }
 
+// Helpers
+
+func (m *MgoStorage) inBank(hashTags ...string) (tagsInBank map[string]float64, err error) {
+	var results = []struct {
+		OnMarket float64 `bson:"on_market"`
+		HashTag  string  `bson:"hashtag"`
+	}{}
+
+	col := m.collection(OrderCollectionName)
+	defer col.Database.Session.Close()
+
+	pipeline := []bson.M{
+		bson.M{
+			"$match": bson.M{
+				"hashtag": bson.M{
+					"$in": hashTags,
+				},
+			},
+		},
+		bson.M{
+			"$group": bson.M{
+				"_id": "$hashtag",
+				"on_market": bson.M{
+					"$sum": "$quantity",
+				},
+			},
+		},
+		bson.M{
+			"$project": bson.M{
+				"_id":       0,
+				"hashtag":   "$_id",
+				"on_market": 1,
+			},
+		},
+	}
+
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&results)
+	if err != nil {
+		return
+	}
+
+	tagsInBank = make(map[string]float64, len(hashTags))
+	for _, tag := range hashTags {
+		tagsInBank[tag] = initialInBankValue
+	}
+
+	for _, result := range results {
+		tagsInBank[result.HashTag] -= result.OnMarket
+	}
+
+	return
+}
+
+func (m *MgoStorage) portfolioPipeline(userId string, hashTag string, byTag bool) []bson.M {
+	selector := bson.M{
+		"user_id":    userId,
+		"resolution": core.SUCCESS,
+	}
+
+	groupBy := bson.M{
+		"user_id": "$user_id",
+	}
+
+	project := bson.M{
+		"_id":      0,
+		"user_id":  "$_id.user_id",
+		"quantity": 1,
+		"value":    1,
+	}
+
+	if hashTag != "" {
+		selector["hashtag"] = hashTag
+	}
+
+	if byTag {
+		groupBy["hashtag"] = "$hashtag"
+		project["hashtag"] = "$_id.hashtag"
+	}
+
+	pipeline := []bson.M{
+		bson.M{
+			"$match": selector,
+		},
+
+		bson.M{
+			"$group": bson.M{
+				"_id": groupBy,
+				"quantity": bson.M{
+					"$sum": "$quantity",
+				},
+			},
+		},
+
+		bson.M{
+			"$project": project,
+		},
+
+		bson.M{
+			"$sort": bson.M{"hashtag": 1},
+		},
+	}
+
+	return pipeline
+}
+
 // Portfolio interface
 
 func (m *MgoStorage) PortfolioShares(userId string) (shares []core.TagShare, err error) {
-	col := m.collection(TagShareCollectionName)
+	col := m.collection(OrderCollectionName)
 	defer col.Database.Session.Close()
 
-	selector := bson.M{"user_id": userId}
-	err = col.Find(selector).Sort("hashtag").All(&shares)
+	pipeline := m.portfolioPipeline(userId, "", true)
+	pipe := col.Pipe(pipeline)
+	err = pipe.All(&shares)
 	return
 }
 
 func (m *MgoStorage) PortfolioShare(userId string, hashTagName string, strict bool) (tagShare *core.TagShare, err error) {
-	col := storage.Collection(TagShareCollectionName)
+	col := storage.collection(OrderCollectionName)
 	defer col.Database.Session.Close()
 
-	tagShare = &core.TagShare{
-		HashTag: hashTagName,
-		UserID:  userId,
-	}
+	pipeline := m.portfolioPipeline(userId, hashTagName, true)
+	pipe := col.Pipe(pipeline)
+	err = pipe.One(&tagShare)
 
-	selector := bson.M{
-		"hashtag": hashTagName,
-		"user_id": userId,
-	}
-
-	err = col.Find(selector).One(&tagShare)
 	if (err == nil && tagShare.Quantity <= 0) || err == mgo.ErrNotFound {
 		if !strict {
 			// Return empty share if not strict
@@ -105,18 +198,20 @@ func (m *MgoStorage) PortfolioBalance(userId string) (balance core.Balance, err 
 	col := m.collection(OrderCollectionName)
 	defer col.Database.Session.Close()
 
-	query := bson.M{
-		"user_id":    userId,
-		"resolution": core.SUCCESS,
-	}
-
 	pipeline := []bson.M{
-		bson.M{"$match": query},
+		bson.M{
+			"$match": bson.M{
+				"user_id":    userId,
+				"resolution": core.SUCCESS,
+			},
+		},
 
 		bson.M{
 			"$group": bson.M{
-				"_id":  "$user_id",
-				"cash": bson.M{"$sum": "$value"},
+				"_id": "$user_id",
+				"cash": bson.M{
+					"$sum": "$value",
+				},
 			},
 		},
 
@@ -141,59 +236,44 @@ func (m *MgoStorage) PortfolioBalance(userId string) (balance core.Balance, err 
 	return
 }
 
-func (m *MgoStorage) PortfolioShareUpdateQuantity(userId string, tag string, quantity float64) error {
-	var tagShare core.TagShare
-	col := storage.Collection(TagShareCollectionName)
-	defer col.Database.Session.Close()
-
-	selector := bson.M{
-		"hashtag": tag,
-		"user_id": userId,
-	}
-
-	query := col.Find(selector)
-	cnt, err := query.Count()
-	if err != nil {
-		return err
-	}
-
-	// Need new tag
-	if cnt == 0 {
-		if quantity < 0 {
-			return errors.New("Selling short is not allowed")
-		}
-		tagShare = core.TagShare{
-			HashTag:  tag,
-			UserID:   userId,
-			Quantity: quantity,
-		}
-		return col.Insert(&tagShare)
-	}
-
-	change := mgo.Change{
-		Update: bson.M{
-			"$inc": bson.M{"quantity": quantity},
-		},
-	}
-	_, err = query.Apply(change, &tagShare)
-	return err
-}
-
 // Bank interface
 
 func (m *MgoStorage) Tags() (hashTags []core.HashTag, err error) {
-	col := m.collection(HashTagCollectionName)
+	col := m.collection(BankCollectionName)
 	defer col.Database.Session.Close()
 
 	err = col.Find(nil).Sort("-value").All(&hashTags)
+	if err != nil {
+		return
+	}
+
+	var tags []string = make([]string, len(hashTags))
+
+	for i, tag := range hashTags {
+		tags[i] = tag.HashTag
+	}
+
+	tagsInBank, err := m.inBank(tags...)
+	if err != nil {
+		return
+	}
+
+	for i, tag := range hashTags {
+		hashTags[i].InBank = tagsInBank[tag.HashTag]
+	}
+
 	return
 }
 
 func (m *MgoStorage) Tag(hashTagName string) (hashTag *core.HashTag, err error) {
-	col := m.collection(HashTagCollectionName)
+	col := m.collection(BankCollectionName)
 	defer col.Database.Session.Close()
 
-	err = col.Find(bson.M{"hashtag": hashTagName}).One(&hashTag)
+	selector := bson.M{
+		"hashtag": hashTagName,
+	}
+
+	err = col.Find(selector).One(&hashTag)
 
 	if err == mgo.ErrNotFound {
 		msg := fmt.Sprintf("HashTag %#v not found", hashTagName)
@@ -201,6 +281,17 @@ func (m *MgoStorage) Tag(hashTagName string) (hashTag *core.HashTag, err error) 
 	} else if err != nil {
 		err = core.NewInternalServerError(err.Error())
 	}
+
+	if err != nil {
+		return
+	}
+
+	tagsInBank, err := m.inBank(hashTagName)
+	if err != nil {
+		return
+	}
+
+	hashTag.InBank = tagsInBank[hashTagName]
 
 	return
 }
@@ -211,7 +302,7 @@ func (m *MgoStorage) TagSetValue(hashTagName string, value float64) error {
 		return core.NewBadRequestError("Value can not be negative")
 	}
 
-	col := m.collection(HashTagCollectionName)
+	col := m.collection(BankCollectionName)
 	defer col.Database.Session.Close()
 
 	selector := bson.M{"hashtag": hashTagName}
@@ -225,38 +316,10 @@ func (m *MgoStorage) TagSetValue(hashTagName string, value float64) error {
 		hashTag = core.HashTag{
 			HashTag: hashTagName,
 			Value:   value,
-			InBank:  initialInBankValue,
 		}
 		return col.Insert(hashTag)
 	}
 
-	return err
-}
-
-func (m *MgoStorage) TagUpdateInBank(tag string, quantity float64) error {
-	var hashTag core.HashTag
-
-	col := m.collection(HashTagCollectionName)
-	defer col.Database.Session.Close()
-
-	selector := bson.M{"hashtag": tag}
-	if err := col.Find(selector).One(&hashTag); err != nil {
-		return err
-	}
-
-	newInBank := hashTag.InBank + quantity
-	if newInBank < 0.0 {
-		return errors.New("Not enough shares of in bank.")
-	} else if newInBank > 100.0 {
-		return errors.New("Bank can not own more then 100% of shres")
-	}
-
-	change := mgo.Change{
-		Update: bson.M{
-			"$inc": bson.M{"in_bank": quantity},
-		},
-	}
-	_, err := col.Find(selector).Apply(change, &hashTag)
 	return err
 }
 
@@ -287,11 +350,9 @@ func (m *MgoStorage) Orders(userId string, complete bool, tag string, resolution
 		"complete": complete,
 		"user_id":  userId,
 	}
-
 	if tag != "" {
 		selector["hashtag"] = tag
 	}
-
 	if resolution != "" {
 		selector["resolution"] = resolution
 	}

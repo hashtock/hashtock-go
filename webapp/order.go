@@ -130,8 +130,13 @@ func (o *orderService) validateOrder(order core.OrderBase) (err error) {
 		return core.NewBadRequestError("Order type not supported")
 	}
 
-	if _, err := o.bank.Tag(order.HashTag); err != nil {
-		return core.NewBadRequestError("Can't place order for this tag")
+	tag, err := o.bank.Tag(order.HashTag)
+	if err != nil {
+		return core.NewBadRequestError("Can't place order for unrecognised tag")
+	}
+
+	if tag.Value <= 0 {
+		return core.NewBadRequestError("Tag does not have any value")
 	}
 
 	return

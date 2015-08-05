@@ -87,9 +87,6 @@ func (o *OrderWorker) executeBankOrder(order core.Order) (err error) {
 			msg := fmt.Sprintf("Bank does not have enough shares to complete %v", order)
 			return core.NewBadRequestError(msg)
 		}
-
-		o.portfolio.PortfolioShareUpdateQuantity(order.UserID, order.HashTag, order.Quantity)
-		o.bank.TagUpdateInBank(order.HashTag, -order.Quantity)
 	}
 
 	// Sell
@@ -99,9 +96,6 @@ func (o *OrderWorker) executeBankOrder(order core.Order) (err error) {
 			msg := fmt.Sprintf("User %v does not have enough shares (%v) to complete %v - %#v", order.UserID, tagShare.Quantity, order.UUID, order.OrderBase)
 			return core.NewBadRequestError(msg)
 		}
-
-		o.portfolio.PortfolioShareUpdateQuantity(order.UserID, order.HashTag, order.Quantity)
-		o.bank.TagUpdateInBank(order.HashTag, -order.Quantity)
 	}
 
 	err = o.storage.OrderCompleted(order.UUID, core.SUCCESS, "")

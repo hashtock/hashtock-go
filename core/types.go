@@ -24,7 +24,7 @@ type Balance struct {
 type HashTag struct {
 	HashTag string  `bson:"hashtag,omitempty" json:"hashtag"`
 	Value   float64 `bson:"value,omitempty" json:"value"`
-	InBank  float64 `bson:"in_bank,omitempty" json:"in_bank"`
+	InBank  float64 `bson:"-" json:"in_bank"`
 }
 
 type TagShare struct {
