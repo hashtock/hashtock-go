@@ -14,9 +14,8 @@ type Config struct {
 }
 
 type GeneralConf struct {
-	AppAddress  string
-	AuthAddress string
 	ServeAddr   string
+	AuthAddress string
 	DB          string
 	DBName      string
 }

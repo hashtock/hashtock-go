@@ -4,7 +4,9 @@ FROM alpine:3.2
 ENV GOROOT=/usr/lib/go \
     GOPATH=/gopath \
     GOBIN=/gopath/bin \
-    PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+    PATH=$PATH:$GOROOT/bin:$GOPATH/bin \
+    HASHTOCK_SERVE_ADDR=:80 \
+    HASHTOCK_DB_NAME=hashtock
 
 WORKDIR /gopath/src/github.com/hashtock/hashtock-go
 ADD . /gopath/src/github.com/hashtock/hashtock-go
@@ -15,5 +17,7 @@ RUN apk add -U git go && \
     apk del git go && \
     rm -rf /gopath && \
     rm -rf /var/cache/apk/*
+
+EXPOSE 80
 
 CMD "hashtock-go"

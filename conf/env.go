@@ -11,18 +11,15 @@ const (
 )
 
 const (
-	keyAPP_ADDRESS     = "APP_ADDRESS"
 	keyAuthAddress     = "AUTH_ADDRESS"
 	keySERVE_ADDR      = "SERVE_ADDR"
 	keyDB              = "DB"
 	keyDB_NAME         = "DB_NAME"
 	keyJOB_BANK_ORDERS = "JOB_BANK_ORDERS"
 	keyJOB_TAG_VALUES  = "JOB_TAG_VALUES"
-	keyADMIN           = "ADMIN"
 )
 
 var cfgHelp = map[string]string{
-	keyAPP_ADDRESS:     "External app URL",
 	keyAuthAddress:     "Host and port for the auth service",
 	keySERVE_ADDR:      "Internal app host:port for binding",
 	keyDB:              "Location of MongoDB: mongodb://user:password@host:port/",
@@ -78,7 +75,6 @@ func loadConfig() {
 		cfg = new(Config)
 	}
 
-	cfg.General.AppAddress = mustHaveValue(keyAPP_ADDRESS)
 	cfg.General.AuthAddress = mustHaveValue(keyAuthAddress)
 	cfg.General.ServeAddr = mustHaveValue(keySERVE_ADDR)
 	cfg.General.DB = mustHaveValue(keyDB)
@@ -90,7 +86,6 @@ func loadConfig() {
 
 func PrintConfHelp() {
 	keysOrder := []string{
-		keyAPP_ADDRESS,
 		keyAuthAddress,
 		keySERVE_ADDR,
 		keyDB,
