@@ -8,13 +8,13 @@ Assuming you have Go installed and set up
 git clone git@github.com:hashtock/hashtock-go.git $GOPATH/src/github.com hashtock/hashtock-go
 
 # Install requirements
-go get .
+go get github.com/tools/godep
 ```
 
 ## Serve
 ```
 cd $GOPATH/src/github.com/hashtock/hashtock-go
-go build
+godep go build
 ./hashtock-go
 ```
 
@@ -34,7 +34,7 @@ cd $GOPATH/src/github.com/hashtock/hashtock-go
 - Currnet bank value of all hash tags it knows about, and how much does it have for sell
 - History of bank operations
 
-**Market**:
+**Market** (ToDo):
 - Accepts buy offers for a given hashtag+price+amount
 - Accepts sell offers for a given hashtag+price+amount
 - Allows to view any request by ID - owner only
@@ -45,24 +45,19 @@ cd $GOPATH/src/github.com/hashtock/hashtock-go
 - Account balance
 - Current portfolio of hash tags
 
-**Admin**:
-- Add new tag to bank
-
 ## API
 
 URI prefix: `/api/`
 
-| URI             | Method | Description                           | Done? |
-|-----------------|--------|---------------------------------------|-------|
-| /               | GET    | Main entry points to resouces         |  [x]  |
-| /order/         | GET    | List of current orders                |  [x]  |
-| /order/         | POST   | Add new order                         |  [x]  |
-| /order/{uuid}/  | GET    | Order details                         |  [x]  |
-| /order/{uuid}/  | DELETE | Cancel the order                      |  [x]  |
-| /order/history/ | GET    | List of all orders                    |  [x]  |
-| /tag/           | GET    | List of all tags with bank values     |  [x]  |
-| /tag/           | POST   | Add new tag (admin)                   |  [x]  |
-| /tag/{hash}/    | GET    | Details about the hash tag            |  [x]  |
-| /tag/{hash}/    | PUT    | Update tag Value (admin)              |  [x]  |
-| /user/          | GET    | High level user details               |  [x]  |
-| /user/tags/     | GET    | List of users shares of tags          |  [x]  |
+| URI               | Method | Description                           |
+|-------------------|--------|---------------------------------------|
+| /portfolio        | GET    | List of owned tags                    |
+| /portfolio/{hash} | GET    | Detailt about owned tag               |
+| /balance          | GET    | User's cache balance                  |
+| /bank/            | GET    | List of all tags with bank values     |
+| /bank/{hash}/     | GET    | Details about the hash tag            |
+| /order/           | GET    | List of current orders                |
+| /order/           | POST   | Add new order                         |
+| /order/{uuid}/    | GET    | Order details                         |
+| /order/{uuid}/    | DELETE | Cancel the order                      |
+| /order/history/   | GET    | List of all orders                    |
