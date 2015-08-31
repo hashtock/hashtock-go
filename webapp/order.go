@@ -9,6 +9,7 @@ import (
 	"github.com/pborman/uuid"
 
 	"github.com/hashtock/hashtock-go/core"
+	"github.com/hashtock/hashtock-go/validators"
 )
 
 type orderService struct {
@@ -79,7 +80,13 @@ func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if err := o.validateOrder(baseOrder); err != nil {
+	if err := validators.ValidateIncommingOrderSchema(baseOrder); err != nil {
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
+		return
+	}
+
+	if err := validators.ValidateIncommingOrderSanity(o.bank, o.storage, baseOrder); err != nil {
 		status, err := core.ErrToErrorer(err)
 		o.serializer.JSON(rw, status, err)
 		return
@@ -120,23 +127,6 @@ func (o *orderService) newOrderSystem(userId string, tag string, quantity float6
 		CreatedAt:  time.Now(),
 		Resolution: core.PENDING,
 		Value:      quantity * hashTag.Value * -1.0,
-	}
-
-	return
-}
-
-func (o *orderService) validateOrder(order core.OrderBase) (err error) {
-	if order.Type != core.TYPE_BANK {
-		return core.NewBadRequestError("Order type not supported")
-	}
-
-	tag, err := o.bank.Tag(order.HashTag)
-	if err != nil {
-		return core.NewBadRequestError("Can't place order for unrecognised tag")
-	}
-
-	if tag.Value <= 0 {
-		return core.NewBadRequestError("Tag does not have any value")
 	}
 
 	return

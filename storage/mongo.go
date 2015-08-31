@@ -330,8 +330,10 @@ func (m *MgoStorage) Order(userId string, orderId string) (order *core.Order, er
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"user_id": userId,
-		"uuid":    orderId,
+		"uuid": orderId,
+	}
+	if userId != "" {
+		selector["user_id"] = userId
 	}
 
 	err = col.Find(selector).One(&order)

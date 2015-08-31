@@ -14,7 +14,8 @@ const (
 	FAILURE                 = "failure"
 	ERROR                   = "error"
 
-	TYPE_BANK OrderType = "bank"
+	TYPE_BANK   OrderType = "bank"
+	TYPE_MARKET OrderType = "market"
 )
 
 type Balance struct {
@@ -35,9 +36,11 @@ type TagShare struct {
 
 // User part of Order
 type OrderBase struct {
-	Type     OrderType `bson:"type" json:"type"`
-	HashTag  string    `bson:"hashtag" json:"hashtag"`
-	Quantity float64   `bson:"quantity" json:"quantity"`
+	Type        OrderType `bson:"type" json:"type"`
+	HashTag     string    `bson:"hashtag" json:"hashtag"`
+	Quantity    float64   `bson:"quantity" json:"quantity"`
+	UnitPrice   float64   `bson:"unit_price" json:"unit_price"`
+	BaseOrderID string    `bson:"base_order_id" json:"base_order_id"`
 }
 
 // System fields regarding Order
