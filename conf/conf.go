@@ -18,6 +18,7 @@ type GeneralConf struct {
 	AuthAddress string
 	DB          string
 	DBName      string
+	NATS        string
 }
 
 var cfg *Config = nil

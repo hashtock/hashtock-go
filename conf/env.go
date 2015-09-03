@@ -17,6 +17,7 @@ const (
 	keyDB_NAME         = "DB_NAME"
 	keyJOB_BANK_ORDERS = "JOB_BANK_ORDERS"
 	keyJOB_TAG_VALUES  = "JOB_TAG_VALUES"
+	keyNATS            = "NATS"
 )
 
 var cfgHelp = map[string]string{
@@ -26,6 +27,7 @@ var cfgHelp = map[string]string{
 	keyDB_NAME:         "Name of MongoDB to use",
 	keyJOB_BANK_ORDERS: "Time interval for running bank jobs",
 	keyJOB_TAG_VALUES:  "Time interval for pulling tag values from tracker",
+	keyNATS:            "Location of natds server",
 }
 
 var defaultDurations = map[string]time.Duration{
@@ -79,6 +81,7 @@ func loadConfig() {
 	cfg.General.ServeAddr = mustHaveValue(keySERVE_ADDR)
 	cfg.General.DB = mustHaveValue(keyDB)
 	cfg.General.DBName = mustHaveValue(keyDB_NAME)
+	cfg.General.NATS = mustHaveValue(keyNATS)
 
 	cfg.Jobs.BankOrders = getEnvOrDefaultDuration(keyJOB_BANK_ORDERS)
 	cfg.Jobs.TagValues = getEnvOrDefaultDuration(keyJOB_TAG_VALUES)
