@@ -115,6 +115,13 @@ func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if id == orderToFulfil.UserID {
+		err = core.NewBadRequestError("It does not make sense to fulfil your own order")
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
+		return
+	}
+
 	// Full copy and then modify to make it a valid fulfil order
 	baseOrder := orderToFulfil.OrderBase
 	baseOrder.Type = core.TYPE_MARKET_FULFIL

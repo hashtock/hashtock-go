@@ -76,7 +76,7 @@ func ValidateMarketOrdersCompatible(order core.OrderBase, refOrder core.OrderBas
 	if refOrder.Type != core.TYPE_MARKET {
 		return core.NewBadRequestError("Only market order can be fulfilled")
 	}
-	if order.HashTag == refOrder.HashTag {
+	if order.HashTag != refOrder.HashTag {
 		return core.NewBadRequestError("Orders have different tags to trade")
 	}
 	if order.Quantity == -refOrder.Quantity {
