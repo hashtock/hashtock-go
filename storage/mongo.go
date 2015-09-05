@@ -381,6 +381,12 @@ func (m *MgoStorage) OrdersToExecute() (orders []core.Order, err error) {
 
 	selector := bson.M{
 		"complete": false,
+		"type": bson.M{
+			"$in": []core.OrderType{
+				core.TYPE_BANK,
+				core.TYPE_MARKET_FULFIL,
+			},
+		},
 	}
 
 	err = col.Find(selector).Sort("-created_at").All(&orders)

@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -33,10 +34,20 @@ func (o *OrderWorker) processOrders() {
 		return
 	}
 
-	//TODO(error): Handle errors somehow
 	for _, order := range activeOrders {
-		if err := o.executeBankOrder(order); err != nil {
-			log.Printf("OrderWorker: Could not execute bank order %v. Err: %v", order.UUID, err)
+		var err error
+
+		switch order.Type {
+		case core.TYPE_BANK:
+			err = o.executeBankOrder(order)
+		case core.TYPE_MARKET_FULFIL:
+			err = o.executeMarketOrder(order)
+		default:
+			err = errors.New("Don't know how to execute this order type")
+		}
+
+		if err != nil {
+			log.Printf("OrderWorker: Could not execute '%v' order %v. Err: %v", order.Type, order.UUID, err)
 		}
 	}
 
@@ -56,7 +67,8 @@ func (o *OrderWorker) executeBankOrder(order core.Order) (err error) {
 
 	// It's time to blow up if asked to execute non bank order here
 	if order.Type != core.TYPE_BANK {
-		log.Println("execution of non bank order:", order.Type)
+		msg := fmt.Sprintf("execution of non bank order: %v", order.Type)
+		return core.NewBadRequestError(msg)
 	}
 
 	if hashTag, err = o.bank.Tag(order.HashTag); err != nil {
@@ -100,6 +112,10 @@ func (o *OrderWorker) executeBankOrder(order core.Order) (err error) {
 
 	err = o.storage.OrderCompleted(order.UUID, core.SUCCESS, "")
 
+	return
+}
+
+func (o *OrderWorker) executeMarketOrder(order core.Order) (err error) {
 	return
 }
 
