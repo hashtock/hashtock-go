@@ -73,6 +73,24 @@ func (o *orderService) listOrders(filters core.OrderFilter, rw http.ResponseWrit
 	o.serializer.JSON(rw, http.StatusOK, orders)
 }
 
+func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
+	baseOrder := core.OrderBase{}
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&baseOrder); err != nil {
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
+		return
+	}
+
+	if baseOrder.Type != core.TYPE_BANK && baseOrder.Type != core.TYPE_MARKET {
+		err := core.NewBadRequestError("Only bank and initial market orders are allowed where")
+		o.serializer.JSON(rw, err.ErrCode(), err.Error())
+		return
+	}
+
+	o.createNewOrder(baseOrder, rw, req)
+}
+
 func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 	id, err := userId(req)
 	if err != nil {
@@ -101,18 +119,6 @@ func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 	baseOrder := orderToFulfil.OrderBase
 	baseOrder.Type = core.TYPE_MARKET_FULFIL
 	baseOrder.BaseOrderID = orderToFulfil.UUID
-
-	o.createNewOrder(baseOrder, rw, req)
-}
-
-func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
-	baseOrder := core.OrderBase{}
-	decoder := json.NewDecoder(req.Body)
-	if err := decoder.Decode(&baseOrder); err != nil {
-		status, err := core.ErrToErrorer(err)
-		o.serializer.JSON(rw, status, err)
-		return
-	}
 
 	o.createNewOrder(baseOrder, rw, req)
 }
