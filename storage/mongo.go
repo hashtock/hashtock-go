@@ -344,22 +344,11 @@ func (m *MgoStorage) Order(userId string, orderId string) (order *core.Order, er
 	return
 }
 
-func (m *MgoStorage) Orders(userId string, complete bool, tag string, resolution string) (orders []core.Order, err error) {
+func (m *MgoStorage) Orders(filters core.OrderFilter) (orders []core.Order, err error) {
 	col := m.collection(OrderCollectionName)
 	defer col.Database.Session.Close()
 
-	selector := bson.M{
-		"complete": complete,
-		"user_id":  userId,
-	}
-	if tag != "" {
-		selector["hashtag"] = tag
-	}
-	if resolution != "" {
-		selector["resolution"] = resolution
-	}
-
-	err = col.Find(selector).Sort("-created_at").All(&orders)
+	err = col.Find(filters).Sort("-created_at").All(&orders)
 	return
 }
 

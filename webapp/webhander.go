@@ -48,6 +48,7 @@ func Handlers(options Options) http.Handler {
 	m.Get("/order/history/", os.CompletedOrders).Name("Order:CompletedOrders")
 	m.Get("/order/{uuid}/", os.OrderDetails).Name("Order:OrderDetails")
 	m.Get("/order/", os.ActiveOrders).Name("Order:Orders")
+	m.Post("/order/{uuid}/", os.FulfilOrder).Name("Order:FulfilOrder")
 	m.Delete("/order/{uuid}/", os.CancelOrder).Name("Order:CancelOrder")
 	m.Post("/order/", os.NewOrder).Name("Order:NewOrder")
 

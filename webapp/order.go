@@ -37,26 +37,34 @@ func (o *orderService) OrderDetails(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (o *orderService) ActiveOrders(rw http.ResponseWriter, req *http.Request) {
-	o.listOrders(false, rw, req)
-}
-
-func (o *orderService) CompletedOrders(rw http.ResponseWriter, req *http.Request) {
-	o.listOrders(true, rw, req)
-}
-
-func (o *orderService) listOrders(completed bool, rw http.ResponseWriter, req *http.Request) {
-	id, err := userId(req)
+	filters, err := orderFilterFromRequest(req)
 	if err != nil {
 		o.serializer.JSON(rw, http.StatusInternalServerError, err.Error())
 		return
 	}
+	filters.Complete = false
 
-	// Additional filters
-	queryValues := req.URL.Query()
-	tag := queryValues.Get("tag")
-	resolution := queryValues.Get("resolution")
+	// To list market orders of everyone
+	if filters.Type == core.TYPE_MARKET {
+		filters.UserID = ""
+	}
 
-	orders, err := o.storage.Orders(id, completed, tag, resolution)
+	o.listOrders(filters, rw, req)
+}
+
+func (o *orderService) CompletedOrders(rw http.ResponseWriter, req *http.Request) {
+	filters, err := orderFilterFromRequest(req)
+	if err != nil {
+		o.serializer.JSON(rw, http.StatusInternalServerError, err.Error())
+		return
+	}
+	filters.Complete = true
+
+	o.listOrders(filters, rw, req)
+}
+
+func (o *orderService) listOrders(filters core.OrderFilter, rw http.ResponseWriter, req *http.Request) {
+	orders, err := o.storage.Orders(filters)
 	if err != nil {
 		o.serializer.JSON(rw, http.StatusInternalServerError, err.Error())
 		return
@@ -65,13 +73,39 @@ func (o *orderService) listOrders(completed bool, rw http.ResponseWriter, req *h
 	o.serializer.JSON(rw, http.StatusOK, orders)
 }
 
-func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
+func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 	id, err := userId(req)
 	if err != nil {
-		o.serializer.JSON(rw, http.StatusInternalServerError, err.Error())
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
 		return
 	}
 
+	orderId := req.URL.Query().Get(":uuid")
+
+	orderToFulfil, err := o.storage.Order(id, orderId)
+	if err != nil {
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
+		return
+	}
+
+	if orderToFulfil.Type != core.TYPE_MARKET {
+		err = core.NewBadRequestError("Only market orders can be fulfilled")
+		status, err := core.ErrToErrorer(err)
+		o.serializer.JSON(rw, status, err)
+		return
+	}
+
+	// Full copy and then modify to make it a valid fulfil order
+	baseOrder := orderToFulfil.OrderBase
+	baseOrder.Type = core.TYPE_MARKET_FULFIL
+	baseOrder.BaseOrderID = orderToFulfil.UUID
+
+	o.createNewOrder(baseOrder, rw, req)
+}
+
+func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
 	baseOrder := core.OrderBase{}
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&baseOrder); err != nil {
@@ -80,6 +114,10 @@ func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	o.createNewOrder(baseOrder, rw, req)
+}
+
+func (o *orderService) createNewOrder(baseOrder core.OrderBase, rw http.ResponseWriter, req *http.Request) {
 	if err := validators.ValidateIncommingOrderSchema(baseOrder); err != nil {
 		status, err := core.ErrToErrorer(err)
 		o.serializer.JSON(rw, status, err)
@@ -92,11 +130,35 @@ func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	systemOrder, err := o.newOrderSystem(id, baseOrder.HashTag, baseOrder.Quantity)
+	uid, err := userId(req)
 	if err != nil {
-		status, err := core.ErrToErrorer(err)
-		o.serializer.JSON(rw, status, err)
+		o.serializer.JSON(rw, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	unitPrice := 0.0
+	switch baseOrder.Type {
+	case core.TYPE_BANK:
+		hashTag, err := o.bank.Tag(baseOrder.HashTag)
+		if err != nil {
+			status, err := core.ErrToErrorer(err)
+			o.serializer.JSON(rw, status, err)
+			return
+		}
+		unitPrice = hashTag.Value
+	case core.TYPE_MARKET:
+		unitPrice = baseOrder.UnitPrice
+	case core.TYPE_MARKET_FULFIL:
+		unitPrice = baseOrder.UnitPrice
+	}
+
+	systemOrder := core.OrderSystem{
+		UUID:       uuid.New(),
+		UserID:     uid,
+		Complete:   false,
+		CreatedAt:  time.Now(),
+		Resolution: core.PENDING,
+		Value:      baseOrder.Quantity * unitPrice * -1.0,
 	}
 
 	order := &core.Order{
@@ -111,25 +173,6 @@ func (o *orderService) NewOrder(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	o.serializer.JSON(rw, http.StatusCreated, order)
-}
-
-func (o *orderService) newOrderSystem(userId string, tag string, quantity float64) (order core.OrderSystem, err error) {
-	var hashTag *core.HashTag
-
-	if hashTag, err = o.bank.Tag(tag); err != nil {
-		return
-	}
-
-	order = core.OrderSystem{
-		UUID:       uuid.New(),
-		UserID:     userId,
-		Complete:   false,
-		CreatedAt:  time.Now(),
-		Resolution: core.PENDING,
-		Value:      quantity * hashTag.Value * -1.0,
-	}
-
-	return
 }
 
 func (o *orderService) CancelOrder(rw http.ResponseWriter, req *http.Request) {
