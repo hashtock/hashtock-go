@@ -79,11 +79,37 @@ func ValidateMarketOrdersCompatible(order core.OrderBase, refOrder core.OrderBas
 	if order.HashTag != refOrder.HashTag {
 		return core.NewBadRequestError("Orders have different tags to trade")
 	}
-	if order.Quantity == -refOrder.Quantity {
+	if order.Quantity != -refOrder.Quantity {
 		return core.NewBadRequestError("Orders have different quantities to trade")
 	}
 	if order.UnitPrice != refOrder.UnitPrice {
 		return core.NewBadRequestError("Unit price when fulfilling order have to match")
 	}
 	return nil
+}
+
+func UserCanAffordToSpend(portfolio core.PortfolioStorage, userId string, value float64) (ok bool, err error) {
+	balance, err := portfolio.PortfolioBalance(userId)
+	if err != nil {
+		return
+	}
+
+	if balance.Cash >= value {
+		ok = true
+	}
+
+	return
+}
+
+func UserHaveEnoughToSellTag(portfolio core.PortfolioStorage, userId string, tag string, quantity float64) (ok bool, err error) {
+	tagShare, err := portfolio.PortfolioShare(userId, tag, false)
+	if err != nil {
+		return
+	}
+
+	if tagShare != nil && tagShare.Quantity >= quantity {
+		ok = true
+	}
+
+	return
 }

@@ -101,7 +101,8 @@ func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 
 	orderId := req.URL.Query().Get(":uuid")
 
-	orderToFulfil, err := o.storage.Order(id, orderId)
+	orderOwnerId := ""
+	orderToFulfil, err := o.storage.Order(orderOwnerId, orderId)
 	if err != nil {
 		status, err := core.ErrToErrorer(err)
 		o.serializer.JSON(rw, status, err)
@@ -126,6 +127,7 @@ func (o *orderService) FulfilOrder(rw http.ResponseWriter, req *http.Request) {
 	baseOrder := orderToFulfil.OrderBase
 	baseOrder.Type = core.TYPE_MARKET_FULFIL
 	baseOrder.BaseOrderID = orderToFulfil.UUID
+	baseOrder.Quantity *= -1.0
 
 	o.createNewOrder(baseOrder, rw, req)
 }

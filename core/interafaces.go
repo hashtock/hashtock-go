@@ -20,6 +20,7 @@ type OrderStorage interface {
 }
 
 type OrderExecuter interface {
+	Order(userId string, orderId string) (*Order, error)
 	OrdersToExecute() ([]Order, error)
 	OrderCompleted(orderId string, status OrderResolution, notes string) error
 }
