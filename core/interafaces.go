@@ -13,13 +13,14 @@ type BankStorage interface {
 }
 
 type OrderStorage interface {
-	Orders(userId string, complete bool, tag string, resolution string) ([]Order, error)
+	Orders(filter OrderFilter) ([]Order, error)
 	Order(userId string, orderId string) (*Order, error)
 	AddOrder(order *Order) error
 	DeleteOrder(userId string, orderId string) error
 }
 
 type OrderExecuter interface {
+	Order(userId string, orderId string) (*Order, error)
 	OrdersToExecute() ([]Order, error)
 	OrderCompleted(orderId string, status OrderResolution, notes string) error
 }

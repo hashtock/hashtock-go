@@ -14,7 +14,9 @@ const (
 	FAILURE                 = "failure"
 	ERROR                   = "error"
 
-	TYPE_BANK OrderType = "bank"
+	TYPE_BANK          OrderType = "bank"
+	TYPE_MARKET        OrderType = "market"
+	TYPE_MARKET_FULFIL OrderType = "market_fulfil"
 )
 
 type Balance struct {
@@ -35,16 +37,18 @@ type TagShare struct {
 
 // User part of Order
 type OrderBase struct {
-	Type     OrderType `bson:"type" json:"type"`
-	HashTag  string    `bson:"hashtag" json:"hashtag"`
-	Quantity float64   `bson:"quantity" json:"quantity"`
+	Type        OrderType `bson:"type" json:"type"`
+	HashTag     string    `bson:"hashtag" json:"hashtag"`
+	Quantity    float64   `bson:"quantity" json:"quantity"`
+	UnitPrice   float64   `bson:"unit_price" json:"unit_price,omitempty"`
+	BaseOrderID string    `bson:"base_order_id" json:"base_order_id,omitempty"`
 }
 
 // System fields regarding Order
 // Read only for users
 type OrderSystem struct {
 	UUID       string          `bson:"uuid" json:"uuid"`
-	UserID     string          `bson:"user_id" json:"user_id"`
+	UserID     string          `bson:"user_id" json:"-"`
 	Complete   bool            `bson:"complete" json:"complete"`
 	Value      float64         `bson:"value" json:"value"`
 	CreatedAt  time.Time       `bson:"created_at" json:"created_at"`
@@ -56,4 +60,13 @@ type OrderSystem struct {
 type Order struct {
 	OrderBase   `bson:",inline"`
 	OrderSystem `bson:",inline"`
+}
+
+type OrderFilter struct {
+	UserID   string `bson:"user_id,omitempty" schema:"-"`
+	Complete bool   `bson:"complete" schema:"-"`
+
+	Type       OrderType       `bson:"type,omitempty" schema:"type"`
+	HashTag    string          `bson:"hashtag,omitempty" schema:"tag"`
+	Resolution OrderResolution `bson:"resolution,omitempty" schema:"resolution"`
 }

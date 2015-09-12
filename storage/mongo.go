@@ -330,8 +330,10 @@ func (m *MgoStorage) Order(userId string, orderId string) (order *core.Order, er
 	defer col.Database.Session.Close()
 
 	selector := bson.M{
-		"user_id": userId,
-		"uuid":    orderId,
+		"uuid": orderId,
+	}
+	if userId != "" {
+		selector["user_id"] = userId
 	}
 
 	err = col.Find(selector).One(&order)
@@ -342,22 +344,11 @@ func (m *MgoStorage) Order(userId string, orderId string) (order *core.Order, er
 	return
 }
 
-func (m *MgoStorage) Orders(userId string, complete bool, tag string, resolution string) (orders []core.Order, err error) {
+func (m *MgoStorage) Orders(filters core.OrderFilter) (orders []core.Order, err error) {
 	col := m.collection(OrderCollectionName)
 	defer col.Database.Session.Close()
 
-	selector := bson.M{
-		"complete": complete,
-		"user_id":  userId,
-	}
-	if tag != "" {
-		selector["hashtag"] = tag
-	}
-	if resolution != "" {
-		selector["resolution"] = resolution
-	}
-
-	err = col.Find(selector).Sort("-created_at").All(&orders)
+	err = col.Find(filters).Sort("-created_at").All(&orders)
 	return
 }
 
@@ -390,6 +381,12 @@ func (m *MgoStorage) OrdersToExecute() (orders []core.Order, err error) {
 
 	selector := bson.M{
 		"complete": false,
+		"type": bson.M{
+			"$in": []core.OrderType{
+				core.TYPE_BANK,
+				core.TYPE_MARKET_FULFIL,
+			},
+		},
 	}
 
 	err = col.Find(selector).Sort("-created_at").All(&orders)
