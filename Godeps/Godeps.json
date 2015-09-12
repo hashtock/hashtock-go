@@ -20,6 +20,10 @@
 			"Rev": "ae2e162c4b2ae96aa66b596b2c18f17834299ed0"
 		},
 		{
+			"ImportPath": "github.com/gorilla/schema",
+			"Rev": "83d18c92c931a85a1393e7294a74dec23086f89c"
+		},
+		{
 			"ImportPath": "github.com/hashtock/auth/client",
 			"Rev": "14ede624ad6d3e0927c0f7dafc8ab70d97e9ad2e"
 		},
